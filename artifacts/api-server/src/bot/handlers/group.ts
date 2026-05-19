@@ -52,5 +52,7 @@ export async function handleGroupParticipantsUpdate(
 }
 
 function replaceWelcomeMention(template: string, participant: string): string {
-  return template.replace(/@mention/gi, mentionTag(participant));
+  return template
+    .replace(/@user/gi, mentionTag(participant))
+    .replace(/@mention/gi, mentionTag(participant));
 }

@@ -325,7 +325,7 @@ export function getCardOwnerCount(cardId: string): number {
 export function getXpLeaderboard(limit = 10) {
   const db = getDb();
   return db.prepare(
-    "SELECT id, name, xp, level FROM users WHERE COALESCE(is_bot, 0) = 0 ORDER BY COALESCE(level, 1) DESC, COALESCE(xp, 0) DESC LIMIT ?"
+    "SELECT id, name, xp, level FROM users WHERE COALESCE(is_bot, 0) = 0 AND COALESCE(registered, 0) = 1 AND id NOT IN (SELECT id FROM banned_entities WHERE type = 'user') ORDER BY COALESCE(level, 1) DESC, COALESCE(xp, 0) DESC LIMIT ?"
   ).all(limit) as any[];
 }
 
@@ -380,18 +380,19 @@ export function clearDeck(userId: string) {
 
 export function getRichList(groupId?: string, limit = 10) {
   const db = getDb();
+  const baseFilter = `COALESCE(is_bot, 0) = 0 AND COALESCE(registered, 0) = 1 AND id NOT IN (SELECT id FROM banned_entities WHERE type = 'user')`;
   if (groupId) {
     return db.prepare(`
       SELECT u.id, u.name, u.balance + u.bank as total
       FROM users u
       WHERE u.id IN (SELECT user_id FROM message_counts WHERE group_id = ?)
-        AND COALESCE(u.is_bot, 0) = 0
+        AND ${baseFilter}
       ORDER BY total DESC LIMIT ?
     `).all(groupId, limit) as any[];
   }
   return db.prepare(`
     SELECT id, name, balance + bank as total
-    FROM users WHERE COALESCE(is_bot, 0) = 0
+    FROM users WHERE ${baseFilter}
     ORDER BY total DESC LIMIT ?
   `).all(limit) as any[];
 }

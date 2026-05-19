@@ -3,7 +3,7 @@ import type { CommandContext } from "./index.js";
 import {
   ensureGroup, getGroup, updateGroup, getWarnings, addWarning, resetWarnings,
   getActiveMembers, getInactiveMembers, getMods, addMod, isMod, getGroupActivity,
-  muteUser, unmuteUser, getCardStats,
+  muteUser, unmuteUser, getCardStats, getStaff,
 } from "../db/queries.js";
 import { sendText } from "../connection.js";
 import { formatNumber, mentionTag } from "../utils.js";
@@ -138,15 +138,15 @@ export async function handleAdmin(ctx: CommandContext): Promise<void> {
     if (!canUse) return noPerms(from);
     const msg_text = args.join(" ");
     if (!msg_text) {
-      await sendText(from, "❌ Usage: .setwelcome <message>\nUse @mention where the new member should be tagged.");
+      await sendText(from, "❌ Usage: .setwelcome <message>\nUse @user where the new member should be tagged.\nExample: .setwelcome @user, welcome to Tenku 天空!");
       return;
     }
     updateGroup(from, { welcome_msg: msg_text });
-    const preview = msg_text.replace(/@mention/gi, mentionTag(sender));
+    const preview = msg_text.replace(/@user/gi, mentionTag(sender)).replace(/@mention/gi, mentionTag(sender));
     await sendText(
       from,
-      `✅ Welcome message set!\n\nPreview:\n${preview}\n\nWhen someone joins, @mention will tag that person.`,
-      /@mention/i.test(msg_text) ? [sender] : []
+      `✅ Welcome message set!\n\nPreview:\n${preview}\n\n_Use @user as placeholder for the joining member._`,
+      (/@user/i.test(msg_text) || /@mention/i.test(msg_text)) ? [sender] : []
     );
     return;
   }
@@ -162,8 +162,17 @@ export async function handleAdmin(ctx: CommandContext): Promise<void> {
   if (cmd === "setleave") {
     if (!canUse) return noPerms(from);
     const msg_text = args.join(" ");
+    if (!msg_text) {
+      await sendText(from, "❌ Usage: .setleave <message>\nUse @user as placeholder.\nExample: .setleave @user has left Tenku 天空. Goodbye!");
+      return;
+    }
     updateGroup(from, { leave_msg: msg_text });
-    await sendText(from, `✅ Leave message set!\n\nPreview:\n${msg_text}`);
+    const preview = msg_text.replace(/@user/gi, mentionTag(sender)).replace(/@mention/gi, mentionTag(sender));
+    await sendText(
+      from,
+      `✅ Leave message set!\n\nPreview:\n${preview}`,
+      (/@user/i.test(msg_text) || /@mention/i.test(msg_text)) ? [sender] : []
+    );
     return;
   }
 
@@ -201,25 +210,29 @@ export async function handleAdmin(ctx: CommandContext): Promise<void> {
     return;
   }
 
-  if (cmd === "pm" || cmd === "dm") {
-    if (!canUse) return noPerms(from);
-    const info = msg.message?.extendedTextMessage?.contextInfo;
-    const mentioned = info?.mentionedJid?.[0] || info?.participant;
-    if (!mentioned) {
-      await sendText(from, `❌ Usage: .${cmd} @user <message>`);
-      return;
-    }
-    const msgText = args.filter((a) => !a.startsWith("@")).join(" ").trim() || "(no message)";
-    const senderName = ctx.msg.pushName || `@${sender.split("@")[0]}`;
-    try {
-      await sock.sendMessage(mentioned, {
-        text: `📨 *Private Message from* ${senderName} (via group)\n\n${msgText}`,
-        mentions: [sender],
-      });
-      await sendText(from, `✅ Message sent to @${mentioned.split("@")[0]}.`, [mentioned]);
-    } catch {
-      await sendText(from, `❌ Could not DM @${mentioned.split("@")[0]} — they may have messaging privacy enabled.`, [mentioned]);
-    }
+  if (cmd === "pm") {
+    const staffRole = getStaff(sender);
+    const canPromote = isOwner || staffRole?.role === "mod" || staffRole?.role === "guardian";
+    if (!canPromote) return noPerms(from);
+    if (!isBotAdmin) return botNoAdmin(from);
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0]
+      || msg.message?.extendedTextMessage?.contextInfo?.participant;
+    if (!mentioned) { await sendText(from, "❌ Mention someone to promote. Usage: .pm @user"); return; }
+    await sock.groupParticipantsUpdate(from, [mentioned], "promote");
+    await sock.sendMessage(from, { text: `✅ @${mentioned.split("@")[0]} has been promoted to admin.`, mentions: [mentioned] });
+    return;
+  }
+
+  if (cmd === "dm") {
+    const staffRole = getStaff(sender);
+    const canDemote = isOwner || staffRole?.role === "mod" || staffRole?.role === "guardian";
+    if (!canDemote) return noPerms(from);
+    if (!isBotAdmin) return botNoAdmin(from);
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0]
+      || msg.message?.extendedTextMessage?.contextInfo?.participant;
+    if (!mentioned) { await sendText(from, "❌ Mention someone to demote. Usage: .dm @user"); return; }
+    await sock.groupParticipantsUpdate(from, [mentioned], "demote");
+    await sock.sendMessage(from, { text: `✅ @${mentioned.split("@")[0]} has been demoted.`, mentions: [mentioned] });
     return;
   }
 
@@ -369,7 +382,9 @@ export async function handleAdmin(ctx: CommandContext): Promise<void> {
   }
 
   if (cmd === "gamble") {
-    if (!canUse) return noPerms(from);
+    const staffRole = getStaff(sender);
+    const canToggleGamble = isOwner || staffRole?.role === "mod" || staffRole?.role === "guardian";
+    if (!canToggleGamble) return noPerms(from);
     const val = args[0]?.toLowerCase();
     if (val === "on") {
       updateGroup(from, { gambling_enabled: "on" });

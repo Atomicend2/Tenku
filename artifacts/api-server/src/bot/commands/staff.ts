@@ -79,21 +79,20 @@ export async function handleStaff(ctx: CommandContext): Promise<void> {
     const mods = staff.filter((s) => s.role === "mod");
     const guardians = staff.filter((s) => s.role === "guardian");
     const mentions = [...mods, ...guardians].map((s) => s.user_id);
-    const modLines = mods.length > 0 ? mods.map((s) => ` ╰┈➤ @${s.user_id.split("@")[0]}`).join("\n") : " ╰┈➤ None yet";
-    const guardianLines = guardians.length > 0 ? guardians.map((s) => ` ╰┈➤ @${s.user_id.split("@")[0]}`).join("\n") : " ╰┈➤ None yet";
+    const modLines = mods.length > 0 ? mods.map((s) => `╰┈➤ @${s.user_id.split("@")[0]}`).join("\n") : "╰┈➤ None yet";
+    const guardianLines = guardians.length > 0 ? guardians.map((s) => `╰┈➤ @${s.user_id.split("@")[0]}`).join("\n") : "╰┈➤ None yet";
     const text =
-      `🎀 𝐒𝐇𝚫𝐃𝐎𝐖 𝐆𝚫𝐑𝐃𝚵𝐍 🎀\n\n` +
+      `✨ 𝐓𝐄𝐍𝐊𝐔 天空 ✨\n\n` +
       `━━━━━━━━━━━━\n` +
-      `   👑 *Mods* 👑\n` +
+      `👑 Mods 👑\n` +
       `━━━━━━━━━━━━\n` +
       `${modLines}\n\n` +
       `━━━━━━━━━━━━\n` +
-      `🛡️ *Guardians* 🛡️\n` +
+      `🛡️ Guardians 🛡️\n` +
       `━━━━━━━━━━━━\n` +
       `${guardianLines}\n\n` +
-      `━━━━━━━━━━━━\n` +
-      `> *⚠️ Don't spam them to avoid being blocked!*\n\n` +
-      `🆘 Need help? Type *.help* to see bot info`;
+      `━━━━━━━━━━━━\n\n` +
+      `«⚠️ Don't spam them to avoid being banned!»`;
     await sock.sendMessage(from, { text, mentions });
     return;
   }

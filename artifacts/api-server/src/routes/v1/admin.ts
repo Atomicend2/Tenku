@@ -3,6 +3,9 @@ import { randomBytes } from "crypto";
 import { requireAuth, type AuthRequest } from "./middleware.js";
 import { getDb } from "../../bot/db/database.js";
 import { getSocket, isSocketConnected } from "../../bot/connection.js";
+import {
+  startBot, stopBot, getAllBotsStatus, getBotStatusInfo, setPrimaryBot,
+} from "../../bot/bot-manager.js";
 
 const router = Router();
 
@@ -48,6 +51,8 @@ function requireAdminAccess(req: Request, res: Response, next: NextFunction): vo
   });
 }
 
+// ─── Auth ──────────────────────────────────────────────────────────────────
+
 router.post("/login", (req, res) => {
   const { password } = req.body as { password?: string };
   if (!password || password !== ADMIN_PASSWORD) {
@@ -62,12 +67,9 @@ router.post("/login", (req, res) => {
   res.json({ success: true, token });
 });
 
-router.get("/stats", requireAdminAccess as any, (req: AuthRequest, res) => {
-  if (!(req as any).isAdminSession && !isStaff(req)) {
-    res.status(403).json({ success: false, message: "Access denied." });
-    return;
-  }
+// ─── Stats ─────────────────────────────────────────────────────────────────
 
+router.get("/stats", requireAdminAccess as any, (req: AuthRequest, res) => {
   const db = getDb();
 
   const totalUsers   = (db.prepare("SELECT COUNT(*) as c FROM users WHERE COALESCE(is_bot,0)=0").get() as any)?.c || 0;
@@ -76,10 +78,14 @@ router.get("/stats", requireAdminAccess as any, (req: AuthRequest, res) => {
   const totalGuilds  = (db.prepare("SELECT COUNT(*) as c FROM guilds").get() as any)?.c || 0;
   const totalBanned  = (db.prepare("SELECT COUNT(*) as c FROM banned_entities").get() as any)?.c || 0;
   const totalStaff   = (db.prepare("SELECT COUNT(*) as c FROM staff").get() as any)?.c || 0;
-  const totalBalance = (db.prepare("SELECT COALESCE(SUM(balance),0) as s FROM users WHERE COALESCE(is_bot,0)=0").get() as any)?.s || 0;
 
   const recentUsers = db.prepare(
-    "SELECT id, name, phone, level, xp, balance, bank, COALESCE(premium,0) as premium, COALESCE(is_bot,0) as is_bot, created_at FROM users WHERE COALESCE(is_bot,0)=0 ORDER BY created_at DESC LIMIT 20"
+    `SELECT u.id, u.name, u.phone, u.level, u.xp, u.balance, u.bank,
+      COALESCE(u.premium,0) as premium, COALESCE(u.is_bot,0) as is_bot,
+      COALESCE(u.registered,0) as registered, u.created_at,
+      (SELECT s.role FROM staff s WHERE s.user_id = u.id LIMIT 1) as role,
+      (SELECT 1 FROM banned_entities WHERE id = u.id AND type='user') as is_banned
+    FROM users u WHERE COALESCE(u.is_bot,0)=0 ORDER BY u.created_at DESC LIMIT 20`
   ).all();
 
   const staffList = db.prepare(
@@ -87,7 +93,10 @@ router.get("/stats", requireAdminAccess as any, (req: AuthRequest, res) => {
   ).all();
 
   const topUsers = db.prepare(
-    "SELECT id, name, phone, level, xp, balance, bank FROM users WHERE COALESCE(is_bot,0)=0 ORDER BY level DESC, xp DESC LIMIT 10"
+    `SELECT id, name, phone, level, xp, balance, bank FROM users
+     WHERE COALESCE(is_bot,0)=0 AND COALESCE(registered,0)=1
+       AND id NOT IN (SELECT id FROM banned_entities WHERE type='user')
+     ORDER BY level DESC, xp DESC LIMIT 10`
   ).all();
 
   const botConnected = isSocketConnected();
@@ -95,12 +104,121 @@ router.get("/stats", requireAdminAccess as any, (req: AuthRequest, res) => {
   res.json({
     botConnected,
     isOwner: isOwner(req),
-    stats: { totalUsers, totalBots, totalCards, totalGuilds, totalBanned, totalStaff, totalBalance },
+    stats: { totalUsers, totalBots, totalCards, totalGuilds, totalBanned, totalStaff },
     recentUsers,
     staffList,
     topUsers,
   });
 });
+
+// ─── Player Search ──────────────────────────────────────────────────────────
+
+router.get("/players", requireAdminAccess as any, (req, res) => {
+  const { q } = req.query as { q?: string };
+  if (!q || q.trim().length < 1) {
+    res.json({ success: true, players: [] });
+    return;
+  }
+  const db = getDb();
+  const term = `%${q.trim()}%`;
+  const players = db.prepare(`
+    SELECT u.id, u.name, u.phone, u.balance, u.bank, u.level, u.xp,
+           COALESCE(u.registered,0) as registered, u.created_at,
+           COALESCE(u.is_bot,0) as is_bot,
+           (SELECT 1 FROM banned_entities WHERE id = u.id AND type='user') as is_banned,
+           (SELECT s.role FROM staff s WHERE s.user_id = u.id LIMIT 1) as role
+    FROM users u
+    WHERE (u.name LIKE ? OR u.phone LIKE ? OR u.id LIKE ?)
+      AND COALESCE(u.is_bot,0) = 0
+    ORDER BY u.level DESC LIMIT 25
+  `).all(term, term, term) as any[];
+  res.json({ success: true, players });
+});
+
+router.get("/players/:id", requireAdminAccess as any, (req, res) => {
+  const db = getDb();
+  const id = decodeURIComponent(req.params.id);
+  const player = db.prepare(`
+    SELECT u.*,
+      (SELECT 1 FROM banned_entities WHERE id = u.id AND type='user') as is_banned,
+      (SELECT s.role FROM staff s WHERE s.user_id = u.id LIMIT 1) as staff_role
+    FROM users u WHERE u.id = ?
+  `).get(id) as any;
+  if (!player) { res.status(404).json({ success: false, message: "Player not found." }); return; }
+
+  const inventory = db.prepare("SELECT * FROM inventory WHERE user_id = ?").all(id);
+  const cards = db.prepare(`
+    SELECT uc.id as uc_id, uc.obtained_at, c.name, c.series, c.tier
+    FROM user_cards uc JOIN cards c ON c.id = uc.card_id
+    WHERE uc.user_id = ? ORDER BY uc.obtained_at DESC LIMIT 20
+  `).all(id);
+  const warnings = db.prepare("SELECT * FROM warnings WHERE user_id = ? ORDER BY created_at DESC LIMIT 10").all(id);
+  const rpg = db.prepare("SELECT * FROM rpg_characters WHERE user_id = ?").get(id) || {};
+
+  res.json({ success: true, player, inventory, cards, warnings, rpg });
+});
+
+router.post("/players/:id/ban", requireAdminAccess as any, (req, res) => {
+  const db = getDb();
+  const id = decodeURIComponent(req.params.id);
+  const { reason } = req.body as { reason?: string };
+  db.prepare("INSERT OR REPLACE INTO banned_entities (id, type, reason, banned_by, banned_at) VALUES (?, 'user', ?, ?, unixepoch())")
+    .run(id, reason || "Admin ban", (req as any).user?.id || "admin");
+  res.json({ success: true, message: "Player banned." });
+});
+
+router.post("/players/:id/unban", requireAdminAccess as any, (req, res) => {
+  const db = getDb();
+  const id = decodeURIComponent(req.params.id);
+  db.prepare("DELETE FROM banned_entities WHERE id = ? AND type = 'user'").run(id);
+  res.json({ success: true, message: "Player unbanned." });
+});
+
+router.post("/players/:id/coins", requireAdminAccess as any, (req, res) => {
+  const db = getDb();
+  const id = decodeURIComponent(req.params.id);
+  const { amount, target } = req.body as { amount?: number; target?: "wallet" | "bank" };
+  const field = target === "bank" ? "bank" : "balance";
+  const player = db.prepare("SELECT * FROM users WHERE id = ?").get(id) as any;
+  if (!player) { res.status(404).json({ success: false, message: "Player not found." }); return; }
+  const current = Number(player[field] || 0);
+  const next = Math.max(0, current + Number(amount || 0));
+  db.prepare(`UPDATE users SET ${field} = ?, updated_at = unixepoch() WHERE id = ?`).run(next, id);
+  res.json({ success: true, message: `${field === "balance" ? "Wallet" : "Bank"} set to ${next}.` });
+});
+
+router.post("/players/:id/role", requireAdminAccess as any, (req, res) => {
+  const db = getDb();
+  const id = decodeURIComponent(req.params.id);
+  const { role } = req.body as { role?: string };
+  if (!role || !["user", "guardian", "mod", "owner"].includes(role.toLowerCase())) {
+    res.status(400).json({ success: false, message: "Invalid role. Valid: user, guardian, mod, owner" });
+    return;
+  }
+  if (role.toLowerCase() === "user") {
+    db.prepare("DELETE FROM staff WHERE user_id = ?").run(id);
+  } else {
+    db.prepare("INSERT OR REPLACE INTO staff (user_id, role, added_at) VALUES (?, ?, unixepoch())").run(id, role.toLowerCase());
+  }
+  res.json({ success: true, message: `Role set to ${role}.` });
+});
+
+router.post("/players/:id/reset", requireAdminAccess as any, (req, res) => {
+  const db = getDb();
+  const id = decodeURIComponent(req.params.id);
+  db.prepare("UPDATE users SET balance=0, bank=0, xp=0, level=1, updated_at=unixepoch() WHERE id=?").run(id);
+  db.prepare("DELETE FROM inventory WHERE user_id=?").run(id);
+  res.json({ success: true, message: "Player economy reset." });
+});
+
+router.post("/players/:id/clear-cooldowns", requireAdminAccess as any, (req, res) => {
+  const db = getDb();
+  const id = decodeURIComponent(req.params.id);
+  db.prepare("UPDATE users SET last_daily=0,last_work=0,last_dig=0,last_fish=0,last_beg=0,last_gamble=0,last_steal=0 WHERE id=?").run(id);
+  res.json({ success: true, message: "Cooldowns cleared." });
+});
+
+// ─── Legacy Actions ─────────────────────────────────────────────────────────
 
 router.post("/reset-balance", requireAdminAccess as any, (req: AuthRequest, res) => {
   if (!(req as any).isAdminSession && !isOwner(req)) {
@@ -131,16 +249,25 @@ router.post("/unban", requireAdminAccess as any, (req: AuthRequest, res) => {
   res.json({ success: true, message: `${normalized} unbanned.` });
 });
 
+// ─── Bot Management ─────────────────────────────────────────────────────────
+
 router.get("/bots", requireAdminAccess as any, (_req, res) => {
-  const db = getDb();
-  const bots = db.prepare("SELECT id, name, phone, status, roles, image_url, created_at FROM bots ORDER BY created_at ASC").all();
-  res.json({ success: true, bots });
+  res.json({ success: true, bots: getAllBotsStatus() });
+});
+
+router.get("/bots/status", requireAdminAccess as any, (_req, res) => {
+  res.json({ success: true, bots: getAllBotsStatus() });
 });
 
 router.post("/bots", requireAdminAccess as any, (req, res) => {
   const { name, phone } = req.body as { name?: string; phone?: string };
   if (!name) { res.status(400).json({ success: false, message: "name required" }); return; }
   const db = getDb();
+  const existing = db.prepare("SELECT COUNT(*) as c FROM bots").get() as any;
+  if ((existing?.c || 0) >= 5) {
+    res.status(400).json({ success: false, message: "Maximum 5 bots allowed." });
+    return;
+  }
   const id = randomBytes(6).toString("hex");
   const authDir = `data/bots/${id}/auth`;
   db.prepare("INSERT INTO bots (id, name, phone, auth_dir, status, roles) VALUES (?, ?, ?, ?, 'disconnected', '[]')")
@@ -148,10 +275,41 @@ router.post("/bots", requireAdminAccess as any, (req, res) => {
   res.json({ success: true, message: `Bot "${name}" registered.`, id });
 });
 
-router.delete("/bots/:id", requireAdminAccess as any, (req, res) => {
+router.post("/bots/:id/start", requireAdminAccess as any, async (req, res) => {
+  try {
+    await startBot(req.params.id);
+    res.json({ success: true, message: "Bot starting — check status for pairing code." });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/bots/:id/stop", requireAdminAccess as any, async (req, res) => {
+  try {
+    await stopBot(req.params.id);
+    res.json({ success: true, message: "Bot stopped." });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/bots/:id/set-primary", requireAdminAccess as any, (req, res) => {
+  setPrimaryBot(req.params.id);
+  res.json({ success: true, message: "Primary bot updated." });
+});
+
+router.get("/bots/:id/status", requireAdminAccess as any, (req, res) => {
+  const status = getBotStatusInfo(req.params.id);
+  if (!status) { res.status(404).json({ success: false, message: "Bot not found." }); return; }
+  res.json({ success: true, bot: status });
+});
+
+router.delete("/bots/:id", requireAdminAccess as any, async (req, res) => {
+  try {
+    await stopBot(req.params.id);
+  } catch {}
   const db = getDb();
-  const { id } = req.params;
-  db.prepare("DELETE FROM bots WHERE id = ?").run(id);
+  db.prepare("DELETE FROM bots WHERE id = ?").run(req.params.id);
   res.json({ success: true, message: "Bot removed." });
 });
 

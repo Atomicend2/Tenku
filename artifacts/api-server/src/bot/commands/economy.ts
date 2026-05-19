@@ -80,15 +80,19 @@ export async function handleEconomy(ctx: CommandContext): Promise<void> {
     const wallet = user.balance || 0;
     const bank = user.bank || 0;
     const total = wallet + bank;
+    const walletCap = Math.min(5_000_000, 500_000 + (user.level || 1) * 50_000);
+    const pct = Math.min(100, Math.floor((wallet / walletCap) * 100));
+    const filled = Math.round((pct / 100) * 10);
+    const bar = "█".repeat(filled) + "░".repeat(10 - filled);
     await sendText(
       from,
-      `💰 𝗔𝗖𝗖𝗢𝗨𝗡𝗧 𝗕𝗔𝗟𝗔𝗡𝗖𝗘 💰\n\n` +
-      `╭━✩ 𝐒𝐇𝚫𝐃𝐎𝐖 𝐆𝚫𝐑𝐃𝚵𝐍 ☆━╮\n\n` +
-      `🌟 𝗡𝗮𝗺𝗲: ${displayName}\n\n` +
-      `🪙 𝗪𝗮𝗹𝗹𝗲𝘁: \`⎾$${formatNumber(wallet)}⏌\`\n\n` +
-      `🏦 𝗕𝗮𝗻𝗸:   \`⎾$${formatNumber(bank)}⏌\`\n\n` +
-      `🌠  𝗧𝗼𝘁𝗮𝗹: \`⎾$${formatNumber(total)}⏌\`\n\n` +
-      `╰━━━━━━━━━━━━━━━━━╯`
+      `💰 𝗔𝗖𝗖𝗢𝗨𝗡𝗧 𝗕𝗔𝗟𝗔𝗡𝗖𝗘\n\n` +
+      `𝗡𝗮𝗺𝗲: ${displayName}\n` +
+      `𝗪𝗮𝗹𝗹𝗲𝘁: $${formatNumber(wallet)}\n` +
+      `𝗕𝗮𝗻𝗸:   $${formatNumber(bank)}\n` +
+      `𝗧𝗼𝘁𝗮𝗹:  $${formatNumber(total)}\n` +
+      `𝗖𝗮𝗽𝗮𝗰𝗶𝘁𝘆: $${formatNumber(walletCap)}\n\n` +
+      `│  ${bar} ${pct}%`
     );
     return;
   }
@@ -360,24 +364,28 @@ export async function handleEconomy(ctx: CommandContext): Promise<void> {
       ? null
       : await buildProfileImage(ctx, targetId, target, rpg, rank, role).catch(async () => null);
 
-    const wallet = target.balance || 0;
-    const bank = target.bank || 0;
+    const regDate = target.created_at
+      ? new Date(Number(target.created_at) * 1000).toLocaleDateString("en-GB", {
+          day: "2-digit", month: "short", year: "numeric",
+        })
+      : "Unknown";
+    const gymBadges = (target as any).gym_badges || "None";
     const text =
       `╭━━━★彡 ℙℝ𝕆𝔽𝕀𝕃𝔼 彡★━━━╮\n` +
-      `┃\n` +
-      `┃  ★ 𝗨𝘀𝗲𝗿 ⟶ ${name}\n` +
-      `┃  ❈ 𝗔𝗴𝗲 ⟶ ${age}\n` +
-      `┃  ❈ 𝗕𝗶𝗼 ⟶ ${bio}\n` +
-      `┃\n` +
-      `┃  ★ 𝗥𝗲𝗴 ⟶ ${registered} (${daysSinceReg}d ago)\n` +
-      `┃  ★ 𝗥𝗼𝗹𝗲 ⟶ ${role}\n` +
-      `┃  ★ 𝗚𝘂𝗶𝗹𝗱 ⟶ ${guild?.name || "None"}\n` +
-      `┃\n` +
-      `┃  ⚔️ 𝗗𝘂𝗻𝗴𝗲𝗼𝗻 ⟶ Floor ${rpg.dungeon_floor} | Lv.${rpg.level}\n` +
-      `┃  💰 𝗕𝗮𝗹 ⟶ $${formatNumber(wallet)}\n` +
-      `┃  🏦 𝗕𝗮𝗻𝗸 ⟶ $${formatNumber(bank)}\n` +
-      `┃\n` +
-      `╰━━━━━━━━━━━━━━━━━━━━╯`;
+      `│      ☁️ Welcome to Tenku ☁️\n` +
+      `│\n` +
+      `ꕥ 𝗡𝗮𝗺𝗲: ${name} ✨\n` +
+      `ꕥ 𝗔𝗴𝗲: ${age}\n` +
+      `ꕥ 𝗕𝗶𝗼: ${bio}\n` +
+      `ꕥ 𝗥𝗲𝗴𝗶𝘀𝘁𝗲𝗿𝗲𝗱: ${regDate}\n` +
+      `ꕥ 𝗥𝗼𝗹𝗲: ${role}\n` +
+      `ꕥ 𝗚𝘂𝗶𝗹𝗱: ${guild?.name || "N/A"}\n` +
+      `ꕥ 𝗗𝘂𝗻𝗴𝗲𝗼𝗻: Floor ${rpg.dungeon_floor} · Lv.${rpg.level}\n` +
+      `ꕥ 𝗚𝘆𝗺 𝗕𝗮𝗱𝗴𝗲𝘀: ${gymBadges}\n` +
+      `│\n` +
+      `ꕥ 𝗕𝗮𝗻𝗻𝗲𝗱: ${isBanned("user", targetId) ? "Yes" : "No"}\n` +
+      `╰━━━━━━━━━━━━━━━━━━━━╯\n` +
+      `☁️ Rise Beyond the Clouds ☁️`;
 
     if (animatedProfile) {
       await ctx.sock.sendMessage(from, { video: animatedProfile, gifPlayback: true, mimetype: "video/mp4", caption: text, mentions: [targetId] });
