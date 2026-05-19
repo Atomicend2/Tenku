@@ -201,29 +201,25 @@ export async function handleAdmin(ctx: CommandContext): Promise<void> {
     return;
   }
 
-  if (cmd === "pm") {
-    if (!isBotAdmin) return botNoAdmin(from);
+  if (cmd === "pm" || cmd === "dm") {
+    if (!canUse) return noPerms(from);
     const info = msg.message?.extendedTextMessage?.contextInfo;
     const mentioned = info?.mentionedJid?.[0] || info?.participant;
     if (!mentioned) {
-      await sendText(from, "❌ Please mention someone or reply to their message with .pm");
+      await sendText(from, `❌ Usage: .${cmd} @user <message>`);
       return;
     }
-    await sock.groupParticipantsUpdate(from, [mentioned], "promote");
-    await sendText(from, "Done.");
-    return;
-  }
-
-  if (cmd === "dm") {
-    if (!isBotAdmin) return botNoAdmin(from);
-    const info = msg.message?.extendedTextMessage?.contextInfo;
-    const mentioned = info?.mentionedJid?.[0] || info?.participant;
-    if (!mentioned) {
-      await sendText(from, "❌ Please mention someone or reply to their message with .dm");
-      return;
+    const msgText = args.filter((a) => !a.startsWith("@")).join(" ").trim() || "(no message)";
+    const senderName = ctx.msg.pushName || `@${sender.split("@")[0]}`;
+    try {
+      await sock.sendMessage(mentioned, {
+        text: `📨 *Private Message from* ${senderName} (via group)\n\n${msgText}`,
+        mentions: [sender],
+      });
+      await sendText(from, `✅ Message sent to @${mentioned.split("@")[0]}.`, [mentioned]);
+    } catch {
+      await sendText(from, `❌ Could not DM @${mentioned.split("@")[0]} — they may have messaging privacy enabled.`, [mentioned]);
     }
-    await sock.groupParticipantsUpdate(from, [mentioned], "demote");
-    await sendText(from, "Done.");
     return;
   }
 
@@ -449,7 +445,35 @@ export async function handleAdmin(ctx: CommandContext): Promise<void> {
 
   if (cmd === "purge") {
     if (!canUse) return noPerms(from);
-    await sendText(from, "⚠️ Purge command is not available via WhatsApp API.");
+    if (!isBotAdmin) return botNoAdmin(from);
+    const countryCode = args[0]?.replace(/\+/g, "").replace(/\D/g, "");
+    if (!countryCode || countryCode.length < 1 || countryCode.length > 4) {
+      await sendText(from,
+        "❌ Usage: .purge <country_code>\n" +
+        "Example: .purge 234 — removes all +234 (Nigeria) members\n" +
+        "         .purge 1   — removes all +1 (US/CA) members\n\n" +
+        "_Non-admin members with that country code will be removed._"
+      );
+      return;
+    }
+    const participants = groupMeta?.participants || [];
+    const toRemove = participants
+      .filter((p: any) => {
+        const phone = p.id.split("@")[0].split(":")[0];
+        return phone.startsWith(countryCode) && !p.admin;
+      })
+      .map((p: any) => p.id);
+    if (toRemove.length === 0) {
+      await sendText(from, `✅ No non-admin members with country code +${countryCode} found.`);
+      return;
+    }
+    await sendText(from, `⚠️ Removing *${toRemove.length}* member(s) with +${countryCode}...`);
+    for (let i = 0; i < toRemove.length; i += 5) {
+      const batch = toRemove.slice(i, i + 5);
+      await sock.groupParticipantsUpdate(from, batch, "remove").catch(() => {});
+      if (i + 5 < toRemove.length) await new Promise((r) => setTimeout(r, 1500));
+    }
+    await sendText(from, `✅ Purge complete. Removed *${toRemove.length}* member(s) with +${countryCode}.`);
     return;
   }
 

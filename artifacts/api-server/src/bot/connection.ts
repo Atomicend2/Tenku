@@ -71,6 +71,14 @@ export function getPairingCode(): string | null {
   return pairingCode;
 }
 
+export function getBotName(): string {
+  return sock?.user?.name || "Tenku";
+}
+
+export function getBotPhone(): string {
+  return sock?.user?.id?.split("@")[0]?.split(":")[0] || "";
+}
+
 export async function runWithReplyContext<T>(msg: any, fn: () => Promise<T>): Promise<T> {
   return replyContext.run(msg, fn);
 }

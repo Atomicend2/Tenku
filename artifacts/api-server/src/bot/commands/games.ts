@@ -3,6 +3,70 @@ import { sendText } from "../connection.js";
 import { getDb } from "../db/database.js";
 import { ensureUser, updateUser, getUser } from "../db/queries.js";
 import { formatNumber, generateId } from "../utils.js";
+import type { WASocket } from "@whiskeysockets/baileys";
+
+const wcgJoinTimers = new Map<string, NodeJS.Timeout>();
+const wcgWordTimers = new Map<string, NodeJS.Timeout>();
+
+const WCG_START_WORDS = [
+  "apple","banana","cat","dog","elephant","forest","guitar","house","island","jungle",
+  "kite","lemon","mango","night","ocean","planet","queen","river","stone","tiger",
+  "umbrella","violet","water","xerox","yellow","zebra",
+];
+
+async function startWcgGame(sock: WASocket, from: string, gameId: string, players: string[]): Promise<void> {
+  const db = getDb();
+  const startWord = WCG_START_WORDS[Math.floor(Math.random() * WCG_START_WORDS.length)];
+  db.prepare("UPDATE word_chain SET status = 'active', last_word = ?, used_words = ?, current_player = 0 WHERE id = ?")
+    .run(startWord, JSON.stringify([startWord]), gameId);
+  const playerTags = players.map((p) => `@${p.split("@")[0]}`).join(", ");
+  await sock.sendMessage(from, {
+    text:
+      `📝 *Word Chain Started!*\n\n` +
+      `Players: ${playerTags}\n\n` +
+      `First word: *${startWord}*\n` +
+      `Next word must start with: *${startWord.slice(-1).toUpperCase()}*\n\n` +
+      `@${players[0].split("@")[0]}'s turn! ⏱️ 60 seconds!`,
+    mentions: players,
+  });
+  startWcgWordTimer(sock, from, gameId, players, 0);
+}
+
+function startWcgWordTimer(sock: WASocket, from: string, gameId: string, players: string[], playerIdx: number): void {
+  const db = getDb();
+  const prev = wcgWordTimers.get(from);
+  if (prev) clearTimeout(prev);
+  const timer = setTimeout(async () => {
+    wcgWordTimers.delete(from);
+    const game = db.prepare("SELECT * FROM word_chain WHERE id = ? AND status = 'active'").get(gameId) as any;
+    if (!game) return;
+    const currentPlayers: string[] = JSON.parse(game.players);
+    const timedOut = currentPlayers[game.current_player];
+    if (!timedOut) return;
+    currentPlayers.splice(game.current_player, 1);
+    await sock.sendMessage(from, {
+      text: `⏰ @${timedOut.split("@")[0]} ran out of time and was *eliminated*!`,
+      mentions: [timedOut],
+    });
+    if (currentPlayers.length <= 1) {
+      db.prepare("UPDATE word_chain SET status = 'ended' WHERE id = ?").run(gameId);
+      await sock.sendMessage(from, {
+        text: `🏆 @${currentPlayers[0]?.split("@")[0] || "Nobody"} wins Word Chain! 🎉`,
+        mentions: currentPlayers,
+      });
+      return;
+    }
+    const nextIdx = game.current_player % currentPlayers.length;
+    db.prepare("UPDATE word_chain SET players = ?, current_player = ? WHERE id = ?")
+      .run(JSON.stringify(currentPlayers), nextIdx, gameId);
+    await sock.sendMessage(from, {
+      text: `@${currentPlayers[nextIdx].split("@")[0]}'s turn! Word must start with *${game.last_word.slice(-1).toUpperCase()}* — 60 seconds!`,
+      mentions: [currentPlayers[nextIdx]],
+    });
+    startWcgWordTimer(sock, from, gameId, currentPlayers, nextIdx);
+  }, 60000);
+  wcgWordTimers.set(from, timer);
+}
 
 function createTTTBoard(): string[][] {
   return [
@@ -104,6 +168,10 @@ export async function handleGames(ctx: CommandContext): Promise<void> {
   }
 
   if (cmd === "stopgame") {
+    const jt = wcgJoinTimers.get(from);
+    if (jt) { clearTimeout(jt); wcgJoinTimers.delete(from); }
+    const wt = wcgWordTimers.get(from);
+    if (wt) { clearTimeout(wt); wcgWordTimers.delete(from); }
     const game = db.prepare("SELECT * FROM games WHERE group_id = ? AND status = 'active'").get(from) as any;
     if (!game) { await sendText(from, "❌ No active game."); return; }
     if (!ctx.isAdmin && !ctx.isOwner && game.player1 !== sender && game.player2 !== sender) {
@@ -309,42 +377,55 @@ export async function handleGames(ctx: CommandContext): Promise<void> {
     const sub = args[0]?.toLowerCase();
     if (sub === "start") {
       const existing = db.prepare("SELECT * FROM word_chain WHERE group_id = ? AND status != 'ended'").get(from) as any;
-      if (existing) { await sendText(from, "❌ A word chain game is already active. Use .stopgame"); return; }
+      if (existing) { await sendText(from, "❌ A Word Chain game is already active. Use .stopgame to cancel."); return; }
       const gameId = generateId(8);
-      db.prepare(`INSERT INTO word_chain (id, group_id, players, status) VALUES (?, ?, ?, 'waiting')`).run(gameId, from, JSON.stringify([sender]));
+      const joinDeadline = Math.floor(Date.now() / 1000) + 20;
+      db.prepare(`INSERT INTO word_chain (id, group_id, players, status, join_deadline) VALUES (?, ?, ?, 'waiting', ?)`)
+        .run(gameId, from, JSON.stringify([sender]), joinDeadline);
       await sock.sendMessage(from, {
-        text: `📝 *Word Chain* started! @${sender.split("@")[0]} joined. Type *.joinwcg* to join, *.wcg go* to begin!`,
+        text: `📝 *Word Chain Game!*\n\n@${sender.split("@")[0]} started a game!\nType *.joinwcg* to join (20 seconds)\nType *.wcg go* to start early\n\n_Max 5 players. Auto-starts in 20s!_`,
         mentions: [sender],
       });
+      // Auto-start after 20 seconds
+      const joinTimer = setTimeout(async () => {
+        wcgJoinTimers.delete(from);
+        const game = db.prepare("SELECT * FROM word_chain WHERE id = ? AND status = 'waiting'").get(gameId) as any;
+        if (!game) return;
+        const players: string[] = JSON.parse(game.players);
+        if (players.length < 2) {
+          db.prepare("UPDATE word_chain SET status = 'ended' WHERE id = ?").run(gameId);
+          await sendText(from, "❌ Word Chain cancelled — not enough players joined (need 2+).");
+          return;
+        }
+        await startWcgGame(sock, from, gameId, players);
+      }, 20000);
+      wcgJoinTimers.set(from, joinTimer);
       return;
     }
     if (sub === "go") {
       const game = db.prepare("SELECT * FROM word_chain WHERE group_id = ? AND status = 'waiting'").get(from) as any;
-      if (!game) { await sendText(from, "❌ No game waiting."); return; }
+      if (!game) { await sendText(from, "❌ No waiting Word Chain game."); return; }
       const players: string[] = JSON.parse(game.players);
-      const starters = ["apple","banana","cat","dog","elephant","forest","guitar","house","island","jungle"];
-      const startWord = starters[Math.floor(Math.random() * starters.length)];
-      db.prepare("UPDATE word_chain SET status = 'active', last_word = ?, used_words = ? WHERE id = ?")
-        .run(startWord, JSON.stringify([startWord]), game.id);
-      await sock.sendMessage(from, {
-        text: `📝 *Word Chain Started!*\nPlayers: ${players.map((p) => `@${p.split("@")[0]}`).join(", ")}\n\nFirst word: *${startWord}*\nYour word must start with: *${startWord.slice(-1).toUpperCase()}*\n\n@${players[0].split("@")[0]}'s turn!`,
-        mentions: players,
-      });
+      if (players.length < 2) { await sendText(from, "❌ Need at least 2 players to start!"); return; }
+      const joinTimer = wcgJoinTimers.get(from);
+      if (joinTimer) { clearTimeout(joinTimer); wcgJoinTimers.delete(from); }
+      await startWcgGame(sock, from, game.id, players);
       return;
     }
-    await sendText(from, "Usage: .wcg start | .joinwcg | .wcg go | .wordchain (solo word)");
+    await sendText(from, "📝 *Word Chain (WCG)*\n\n.wcg start — Start a new game\n.joinwcg — Join a game\n.wcg go — Force start early\n\nEach player has *60 seconds* to say the next word.\nWrong word or repeat = eliminated!\nLast player standing wins! 🏆");
     return;
   }
 
   if (cmd === "joinwcg") {
     const game = db.prepare("SELECT * FROM word_chain WHERE group_id = ? AND status = 'waiting'").get(from) as any;
-    if (!game) { await sendText(from, "❌ No game to join."); return; }
+    if (!game) { await sendText(from, "❌ No waiting Word Chain game. Use .wcg start to begin one."); return; }
     const players: string[] = JSON.parse(game.players);
+    if (players.length >= 5) { await sendText(from, "❌ Game is full (max 5 players)."); return; }
     if (players.includes(sender)) { await sendText(from, "❌ You're already in!"); return; }
     players.push(sender);
     db.prepare("UPDATE word_chain SET players = ? WHERE id = ?").run(JSON.stringify(players), game.id);
     await sock.sendMessage(from, {
-      text: `✅ @${sender.split("@")[0]} joined Word Chain! (${players.length} players)`,
+      text: `✅ @${sender.split("@")[0]} joined Word Chain! (${players.length}/5 players)`,
       mentions: [sender],
     });
     return;
@@ -429,33 +510,52 @@ export async function handleGameInput(ctx: CommandContext, text: string): Promis
     if (currentPlayer !== sender) return false;
     const lastWord: string = wcgGame.last_word;
     const usedWords: string[] = JSON.parse(wcgGame.used_words);
-    if (word[0] !== lastWord.slice(-1).toLowerCase()) return false;
-    if (usedWords.includes(word)) {
+
+    const eliminate = async (reason: string) => {
+      const timer = wcgWordTimers.get(from);
+      if (timer) { clearTimeout(timer); wcgWordTimers.delete(from); }
       await sock.sendMessage(from, {
-        text: `❌ @${sender.split("@")[0]} — *${word}* was already used! They're out!`,
+        text: `❌ @${sender.split("@")[0]} — ${reason} — *eliminated!*`,
         mentions: [sender],
       });
       players.splice(wcgGame.current_player, 1);
       if (players.length <= 1) {
         db.prepare("UPDATE word_chain SET status = 'ended' WHERE id = ?").run(wcgGame.id);
         await sock.sendMessage(from, {
-          text: `🏆 @${players[0]?.split("@")[0] || "Nobody"} wins Word Chain!`,
+          text: `🏆 @${players[0]?.split("@")[0] || "Nobody"} wins Word Chain! 🎉`,
           mentions: players,
         });
         return true;
       }
+      const nextIdx = wcgGame.current_player % players.length;
       db.prepare("UPDATE word_chain SET players = ?, current_player = ? WHERE id = ?")
-        .run(JSON.stringify(players), wcgGame.current_player % players.length, wcgGame.id);
+        .run(JSON.stringify(players), nextIdx, wcgGame.id);
+      await sock.sendMessage(from, {
+        text: `@${players[nextIdx].split("@")[0]}'s turn! Word must start with *${lastWord.slice(-1).toUpperCase()}* — 60 seconds!`,
+        mentions: [players[nextIdx]],
+      });
+      startWcgWordTimer(sock, from, wcgGame.id, players, nextIdx);
       return true;
+    };
+
+    if (word[0] !== lastWord.slice(-1).toLowerCase()) {
+      return await eliminate(`*${word}* doesn't start with *${lastWord.slice(-1).toUpperCase()}*`);
     }
+    if (usedWords.includes(word)) {
+      return await eliminate(`*${word}* was already used`);
+    }
+
+    const timer = wcgWordTimers.get(from);
+    if (timer) { clearTimeout(timer); wcgWordTimers.delete(from); }
     usedWords.push(word);
     const nextIdx = (wcgGame.current_player + 1) % players.length;
     db.prepare("UPDATE word_chain SET last_word = ?, used_words = ?, current_player = ? WHERE id = ?")
       .run(word, JSON.stringify(usedWords), nextIdx, wcgGame.id);
     await sock.sendMessage(from, {
-      text: `✅ @${sender.split("@")[0]} said *${word}*\nNext: @${players[nextIdx].split("@")[0]} — must start with *${word.slice(-1).toUpperCase()}*`,
+      text: `✅ @${sender.split("@")[0]} said *${word}*!\nNext: @${players[nextIdx].split("@")[0]} — must start with *${word.slice(-1).toUpperCase()}* ⏱️ 60s`,
       mentions: [sender, players[nextIdx]],
     });
+    startWcgWordTimer(sock, from, wcgGame.id, players, nextIdx);
     return true;
   }
 

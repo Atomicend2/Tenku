@@ -432,7 +432,13 @@ async function processDungeonMove(ctx: CommandContext, battle: DungeonBattle, rp
     const reward = battle.enemyReward;
     const newFloor = battle.floor + 1;
     const hpAfter = Math.max(1, battle.playerHp);
-    updateRpg(sender, { dungeon_floor: newFloor, hp: hpAfter, xp: rpgFresh.xp + xp });
+    const skillPts = Math.max(1, Math.floor(battle.floor / 2));
+    updateRpg(sender, {
+      dungeon_floor: newFloor,
+      hp: hpAfter,
+      xp: rpgFresh.xp + xp,
+      skill_points: (rpgFresh.skill_points || 0) + skillPts,
+    });
     updateUser(sender, { balance: (user?.balance || 0) + reward });
     addToInventory(sender, "Dungeon Key");
     checkLevelUp(sender, rpgFresh.xp + xp, rpgFresh.level);
@@ -442,6 +448,7 @@ async function processDungeonMove(ctx: CommandContext, battle: DungeonBattle, rp
       `🏆 *VICTORY!* You defeated *${battle.enemyName}*!\n\n` +
       `💰 Reward: $${formatNumber(reward)}\n` +
       `✨ XP: +${xp}\n` +
+      `⚡ Skill Points: +${skillPts}\n` +
       `🗝️ Dungeon Key obtained!\n` +
       `🏰 Next floor: *Floor ${newFloor}*\n\n` +
       `_Use *.dungeon* to continue._`;

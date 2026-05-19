@@ -1,5 +1,5 @@
 import type { WASocket, proto } from "@whiskeysockets/baileys";
-import { BOT_OWNER_LID, PREFIX, sendText, runWithReplyContext } from "../connection.js";
+import { BOT_OWNER_LID, PREFIX, sendText, runWithReplyContext, getBotName } from "../connection.js";
 import { ensureUser, ensureGroup, incrementMessageCount, incrementGroupActivity, getStaff, isBanned, isUserBanned, getBotSetting, getUser, addUserXp, getActiveMute } from "../db/queries.js";
 import { checkAntilink, checkAntispam, checkBlacklist } from "./antispam.js";
 import { checkAutoSpawn, handleGetCard } from "./cardspawn.js";
@@ -247,7 +247,9 @@ async function dispatch(ctx: CommandContext): Promise<void> {
       return handleMenu(ctx);
 
     case "ping":
-      await sendText(from, `🌌 Tenku's here! 天空\n> ${getPingMs(msg)}ms`);
+    case "test":
+    case "alive":
+      await sendText(from, `🌌 *${getBotName()}* — 天空 Online\n> ${getPingMs(msg)}ms`);
       return;
 
     case "uptime": {
@@ -266,7 +268,7 @@ async function dispatch(ctx: CommandContext): Promise<void> {
       return;
 
     case "community":
-      await sendText(from, "🌌 *Join Tenku 天空!*\n\nhttps://chat.whatsapp.com/LDnXqYWuvZMELxVaOpAAHI\n\n_The Heavenly Sky awaits. Ascend._");
+      await sendText(from, "🌌 *Join Tenku 天空!*\n\nhttps://chat.whatsapp.com/IZi7UphEO9O76lY8dFYUYn?mode=gi_t\n\n_The Heavenly Sky awaits. Ascend._");
       return;
 
     case "afk":

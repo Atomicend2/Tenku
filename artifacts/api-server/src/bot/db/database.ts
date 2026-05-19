@@ -460,6 +460,37 @@ function initSchema(db: Database.Database): void {
   ensureColumn(db, "users", "lottery_tickets", "INTEGER DEFAULT 0");
   ensureColumn(db, "users", "lottery_tickets_bought_today", "INTEGER DEFAULT 0");
   ensureColumn(db, "users", "lottery_tickets_reset_date", "TEXT DEFAULT ''");
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS bots (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      phone TEXT DEFAULT '',
+      auth_dir TEXT NOT NULL,
+      status TEXT DEFAULT 'disconnected',
+      roles TEXT DEFAULT '[]',
+      image_url TEXT DEFAULT '',
+      pairing_phone TEXT DEFAULT '',
+      created_at INTEGER DEFAULT (unixepoch())
+    );
+
+    CREATE TABLE IF NOT EXISTS admin_sessions (
+      token TEXT PRIMARY KEY,
+      created_at INTEGER DEFAULT (unixepoch()),
+      expires_at INTEGER NOT NULL
+    );
+  `);
+
+  // Deduplicate shop items — keep only the first row per unique name
+  db.exec(`
+    DELETE FROM shop_items WHERE id NOT IN (
+      SELECT MIN(id) FROM shop_items GROUP BY LOWER(name)
+    )
+  `);
+
+  ensureColumn(db, "word_chain", "join_deadline", "INTEGER DEFAULT 0");
+  ensureColumn(db, "word_chain", "word_deadline", "INTEGER DEFAULT 0");
+  ensureColumn(db, "word_chain", "eliminated", "TEXT DEFAULT '[]'");
 }
 
 function ensureColumn(db: Database.Database, table: string, column: string, definition: string): void {

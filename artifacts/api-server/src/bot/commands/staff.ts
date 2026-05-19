@@ -167,6 +167,38 @@ export async function handleStaff(ctx: CommandContext): Promise<void> {
     return;
   }
 
+  if (cmd === "addrole" || cmd === "removerole") {
+    if (!isOwner) { await sendText(from, "❌ Only the bot owner can manage bot roles."); return; }
+    const role = args[0]?.toLowerCase();
+    if (role !== "otp") {
+      await sendText(from, "❌ Available roles: *otp*\nUsage: .addrole otp <phone/botId>\n.removerole otp <phone/botId>");
+      return;
+    }
+    const rawTarget = args[1] || msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0] || "";
+    const phone = rawTarget.replace(/\D/g, "");
+    if (!phone) {
+      await sendText(from, `❌ Usage: .${cmd} otp <phone number>`);
+      return;
+    }
+    const db = getDb();
+    const bot = db.prepare("SELECT * FROM bots WHERE phone = ? OR id = ?").get(phone, rawTarget) as any;
+    if (!bot) {
+      await sendText(from, `❌ No bot found with phone/ID "${phone}".\n\nRegister bots in the admin panel at the website.`);
+      return;
+    }
+    const roles: string[] = (() => { try { return JSON.parse(bot.roles || "[]"); } catch { return []; } })();
+    if (cmd === "addrole") {
+      if (!roles.includes("otp")) roles.push("otp");
+      db.prepare("UPDATE bots SET roles = ? WHERE id = ?").run(JSON.stringify(roles), bot.id);
+      await sendText(from, `✅ Bot *${bot.name}* now has the *OTP* role.\nIt will be used for sending verification codes.`);
+    } else {
+      const next = roles.filter((r) => r !== "otp");
+      db.prepare("UPDATE bots SET roles = ? WHERE id = ?").run(JSON.stringify(next), bot.id);
+      await sendText(from, `✅ Removed *OTP* role from bot *${bot.name}*.`);
+    }
+    return;
+  }
+
   if (cmd === "addmod") {
     if (!isOwner) { await sendText(from, "❌ Only the bot owner can add mods."); return; }
     const target = resolveStaffTarget(args[0], msg);

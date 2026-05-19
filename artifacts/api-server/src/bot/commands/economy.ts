@@ -360,17 +360,24 @@ export async function handleEconomy(ctx: CommandContext): Promise<void> {
       ? null
       : await buildProfileImage(ctx, targetId, target, rpg, rank, role).catch(async () => null);
 
+    const wallet = target.balance || 0;
+    const bank = target.bank || 0;
     const text =
-      `╭━✦ 𝙋𝙇𝘼𝙔𝙀𝙍 𝙋𝙍𝙊𝙁𝙄𝙇𝙀 ✦━╮\n` +
-      `    Welcome to your profile\n\n` +
-      `✧ 𝗡𝗮𝗺𝗲: ۶ৎ ${name}\n` +
-      `✧ 𝗔𝗴𝗲: ${age}\n` +
-      `✧ 𝗕𝗶𝗼: ${bio}\n` +
-      `✧ 𝗥𝗲𝗴𝗶𝘀𝘁𝗲𝗿𝗲𝗱: ${registered} (${daysSinceReg}d ago)\n` +
-      `✧ 𝗥𝗼𝗹𝗲: ${role}\n` +
-      `✧ 𝗚𝘂𝗶𝗹𝗱: ${guild?.name || "None"}\n` +
-      `✧ 𝗗𝘂𝗻𝗴𝗲𝗼𝗻: Floor ${rpg.dungeon_floor} · Lv.${rpg.level}\n\n` +
-      `✧ 𝗕𝗮𝗻𝗻𝗲𝗱: ${isBanned("user", targetId) ? "Yes" : "No"}`;
+      `╭━━━★彡 ℙℝ𝕆𝔽𝕀𝕃𝔼 彡★━━━╮\n` +
+      `┃\n` +
+      `┃  ★ 𝗨𝘀𝗲𝗿 ⟶ ${name}\n` +
+      `┃  ❈ 𝗔𝗴𝗲 ⟶ ${age}\n` +
+      `┃  ❈ 𝗕𝗶𝗼 ⟶ ${bio}\n` +
+      `┃\n` +
+      `┃  ★ 𝗥𝗲𝗴 ⟶ ${registered} (${daysSinceReg}d ago)\n` +
+      `┃  ★ 𝗥𝗼𝗹𝗲 ⟶ ${role}\n` +
+      `┃  ★ 𝗚𝘂𝗶𝗹𝗱 ⟶ ${guild?.name || "None"}\n` +
+      `┃\n` +
+      `┃  ⚔️ 𝗗𝘂𝗻𝗴𝗲𝗼𝗻 ⟶ Floor ${rpg.dungeon_floor} | Lv.${rpg.level}\n` +
+      `┃  💰 𝗕𝗮𝗹 ⟶ $${formatNumber(wallet)}\n` +
+      `┃  🏦 𝗕𝗮𝗻𝗸 ⟶ $${formatNumber(bank)}\n` +
+      `┃\n` +
+      `╰━━━━━━━━━━━━━━━━━━━━╯`;
 
     if (animatedProfile) {
       await ctx.sock.sendMessage(from, { video: animatedProfile, gifPlayback: true, mimetype: "video/mp4", caption: text, mentions: [targetId] });
@@ -397,8 +404,8 @@ export async function handleEconomy(ctx: CommandContext): Promise<void> {
       return;
     }
     const ageNum = parseInt(age, 10);
-    if (ageNum < 13 || ageNum > 50) {
-      await sendText(from, "❌ Age must be between 13 and 50.");
+    if (ageNum < 13 || ageNum > 60) {
+      await sendText(from, "❌ Age must be between 13 and 60.");
       return;
     }
     updateUser(sender, { age });

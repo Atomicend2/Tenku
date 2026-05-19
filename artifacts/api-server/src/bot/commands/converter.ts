@@ -55,7 +55,10 @@ export async function handleConverter(ctx: CommandContext): Promise<void> {
         webp = await convertToStickerWebp(input);
       }
 
-      const buf = addWebpExif(webp, DEFAULT_STICKER_PACK, DEFAULT_STICKER_NAME);
+      const stickerDisplayName = quotedMsg?.stickerMessage
+        ? (ctx.msg.pushName || sender.split("@")[0])
+        : DEFAULT_STICKER_NAME;
+      const buf = addWebpExif(webp, DEFAULT_STICKER_PACK, stickerDisplayName);
       await sock.sendMessage(from, {
         sticker: buf,
         mimetype: "image/webp",
@@ -63,6 +66,61 @@ export async function handleConverter(ctx: CommandContext): Promise<void> {
     } catch (err) {
       logger.error({ err }, "Failed to create sticker");
       await sendText(from, "❌ Failed to create sticker.");
+    }
+    return;
+  }
+
+  if (cmd === "speech") {
+    const text = args.join(" ");
+    if (!text) {
+      await sendText(from, "❌ Usage: .speech [text] — reply to a sticker or image");
+      return;
+    }
+    const context = msg.message?.extendedTextMessage?.contextInfo;
+    const quotedMsg = context?.quotedMessage;
+    if (!quotedMsg?.stickerMessage && !quotedMsg?.imageMessage) {
+      await sendText(from, "❌ Reply to a sticker or image with .speech [text]");
+      return;
+    }
+    try {
+      const target = {
+        key: {
+          remoteJid: from,
+          fromMe: false,
+          id: context?.stanzaId || "",
+          participant: context?.participant,
+        },
+        message: quotedMsg,
+      };
+      const downloaded = await downloadMediaMessage(target as any, "buffer", {}, { reuploadRequest: (sock as any).updateMediaMessage });
+      const input = Buffer.isBuffer(downloaded) ? downloaded : Buffer.from(downloaded as any);
+      const imgBuf = await sharp(input).png().toBuffer();
+      const meta = await sharp(imgBuf).metadata();
+      const w = meta.width || 512;
+      const h = meta.height || 512;
+      const fontSize = Math.max(18, Math.floor(w / 18));
+      const barH = Math.max(48, Math.floor(h * 0.20));
+      const displayText = text.length > 55 ? text.substring(0, 52) + "..." : text;
+      const escapedText = displayText
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${barH}">
+        <rect width="${w}" height="${barH}" rx="0" fill="rgba(0,0,0,0.72)"/>
+        <text x="${w / 2}" y="${barH / 2}" dominant-baseline="middle" text-anchor="middle"
+          font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" fill="white" font-weight="bold">
+          ${escapedText}
+        </text>
+      </svg>`;
+      const result = await sharp(imgBuf)
+        .composite([{ input: Buffer.from(svg), gravity: "south" }])
+        .jpeg({ quality: 88 })
+        .toBuffer();
+      await sock.sendMessage(from, { image: result, caption: `💬 "${text}"` });
+    } catch (err) {
+      logger.error({ err }, "Speech command failed");
+      await sendText(from, "❌ Failed to create speech bubble.");
     }
     return;
   }
