@@ -936,6 +936,8 @@ components:
       properties:
         totalMembers:
           type: integer
+        totalBots:
+          type: integer
         activeMissions:
           type: integer
         totalCards:
@@ -946,6 +948,7 @@ components:
           type: integer
       required:
         - totalMembers
+        - totalBots
         - activeMissions
         - totalCards
         - totalGuilds

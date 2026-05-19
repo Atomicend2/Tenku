@@ -339,6 +339,7 @@ export const GetLotteryStateResponse = zod.object({
  */
 export const GetCommunityStatsResponse = zod.object({
   totalMembers: zod.number(),
+  totalBots: zod.number(),
   activeMissions: zod.number(),
   totalCards: zod.number(),
   totalGuilds: zod.number(),

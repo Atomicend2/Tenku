@@ -146,6 +146,11 @@ router.post("/otp/verify", (req, res) => {
   const sessionExpiry = now + 30 * 24 * 3600;
   db.prepare("INSERT INTO web_sessions (token, user_id, expires_at) VALUES (?, ?, ?)").run(token, user.id, sessionExpiry);
 
+  const BOT_OWNER = (process.env["BOT_OWNER_LID"] || "2348144550593").replace(/\D/g, "");
+  const isOwner = normalized === BOT_OWNER || user.id?.split("@")[0] === BOT_OWNER;
+  const staffRow = db.prepare("SELECT 1 FROM staff WHERE user_id = ? OR user_id LIKE ?").get(user.id, `${normalized}%`);
+  const isMod = isOwner || !!staffRow ? 1 : 0;
+
   res.json({
     success: true,
     token,
@@ -160,6 +165,8 @@ router.post("/otp/verify", (req, res) => {
       premium: user.premium || 0,
       bio: user.bio || "",
       registeredAt: user.created_at || 0,
+      isMod,
+      isOwner,
     },
   });
 });

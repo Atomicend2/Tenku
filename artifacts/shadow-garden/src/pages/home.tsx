@@ -67,7 +67,7 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="https://chat.whatsapp.com/LDnXqYWuvZMELxVaOpAAHI"
+              href="https://chat.whatsapp.com/IZi7UphEO9O76lY8dFYUYn?mode=gi_t"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full sm:w-auto"
@@ -113,10 +113,10 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <StatCard icon={Users}     label="Ascendants"      value={stats?.totalUsers ?? 0}        color="text-primary" />
+              <StatCard icon={Users}     label="Ascendants"      value={stats?.totalMembers ?? 0}      color="text-primary" />
               <StatCard icon={CreditCard}label="Cards Collected"  value={stats?.totalCards ?? 0}        color="text-sky-400" />
               <StatCard icon={Shield}    label="Guilds Active"    value={stats?.totalGuilds ?? 0}       color="text-amber-400" />
-              <StatCard icon={Activity}  label="Messages Today"   value={stats?.messagesLast24h ?? 0}   color="text-teal-400" />
+              <StatCard icon={Activity}  label="Bots Online"      value={(stats as any)?.totalBots ?? 0} color="text-teal-400" />
             </div>
           )}
         </div>
@@ -151,7 +151,7 @@ export default function Home() {
           <p className="font-mono text-primary/40 tracking-[0.5em] text-xs uppercase mb-4">天空</p>
           <h2 className="font-serif text-4xl md:text-5xl font-bold text-white neon-text-sky mb-6">The Sky Has No Limit</h2>
           <p className="text-muted-foreground mb-8">Join Tenku on WhatsApp and begin your ascension today.</p>
-          <a href="https://chat.whatsapp.com/LDnXqYWuvZMELxVaOpAAHI" target="_blank" rel="noopener noreferrer">
+          <a href="https://chat.whatsapp.com/IZi7UphEO9O76lY8dFYUYn?mode=gi_t" target="_blank" rel="noopener noreferrer">
             <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold tracking-[0.2em] uppercase px-12 h-14 neon-border-sky">
               Ascend Now
             </Button>

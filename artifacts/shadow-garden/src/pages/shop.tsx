@@ -89,7 +89,7 @@ export default function Shop() {
           </div>
         ) : shopData?.categories ? (
           <div className="space-y-16">
-            {shopData.categories.map((category) => (
+            {shopData.categories.filter(c => c.name !== "lottery").map((category) => (
               <div key={category.name}>
                 <div className="flex items-center gap-4 mb-8">
                   <h2 className="font-serif text-2xl font-bold text-white capitalize tracking-widest">

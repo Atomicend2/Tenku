@@ -8,6 +8,7 @@
 
 export interface CommunityStats {
   totalMembers: number;
+  totalBots: number;
   activeMissions: number;
   totalCards: number;
   totalGuilds: number;

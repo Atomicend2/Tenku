@@ -111,13 +111,15 @@ export default function Login() {
                   <Label htmlFor="phone" className="text-primary tracking-[0.2em] uppercase text-xs">WhatsApp Number</Label>
                   <Input 
                     id="phone" 
-                    placeholder="e.g. +2347012345678" 
+                    placeholder="e.g. 2347012345678" 
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="bg-black/50 border-primary/30 text-white placeholder:text-muted-foreground focus-visible:ring-primary focus-visible:border-primary"
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                    className="bg-black/50 border-primary/30 text-white placeholder:text-muted-foreground focus-visible:ring-primary focus-visible:border-primary font-mono tracking-wider"
                     required
+                    inputMode="numeric"
+                    maxLength={15}
                   />
-                  <p className="text-xs text-muted-foreground">Must include country code (+).</p>
+                  <p className="text-xs text-muted-foreground">Numbers only — include country code without +. &nbsp;<span className="text-primary/60 font-mono">234... · 233... · 27... · 91... · 92...</span></p>
                 </div>
                 <Button 
                   type="submit" 
@@ -164,7 +166,7 @@ export default function Login() {
           </CardContent>
           <CardFooter className="justify-center border-t border-primary/10 pt-6">
             <p className="text-xs text-muted-foreground">
-              Not a member? <a href="https://chat.whatsapp.com/LDnXqYWuvZMELxVaOpAAHI" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Join Tenku 天空</a>
+              Not a member? <a href="https://chat.whatsapp.com/IZi7UphEO9O76lY8dFYUYn?mode=gi_t" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Join Tenku 天空</a>
             </p>
           </CardFooter>
         </Card>

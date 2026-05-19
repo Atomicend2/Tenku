@@ -14,6 +14,7 @@ import Cards from "@/pages/cards";
 import Guilds from "@/pages/guilds";
 import Leaderboard from "@/pages/leaderboard";
 import World from "@/pages/world";
+import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -37,6 +38,7 @@ function Router() {
         <Route path="/guilds" component={Guilds} />
         <Route path="/leaderboard" component={Leaderboard} />
         <Route path="/world" component={World} />
+        <Route path="/admin" component={Admin} />
         <Route component={NotFound} />
       </Switch>
     </AppLayout>

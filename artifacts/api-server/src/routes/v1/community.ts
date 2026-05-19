@@ -9,6 +9,7 @@ router.get("/stats", (_req, res) => {
   const totalMembers = (db.prepare("SELECT COUNT(*) as cnt FROM users WHERE COALESCE(is_bot, 0) = 0").get() as any)?.cnt || 0;
   const totalCards = (db.prepare("SELECT COUNT(*) as cnt FROM cards").get() as any)?.cnt || 0;
   const totalGuilds = (db.prepare("SELECT COUNT(*) as cnt FROM guilds").get() as any)?.cnt || 0;
+  const totalBots = (db.prepare("SELECT COUNT(*) as cnt FROM users WHERE COALESCE(is_bot, 0) = 1").get() as any)?.cnt || 0;
   const activeMissions = (db.prepare(`
     SELECT COUNT(*) as cnt FROM rpg_characters
     WHERE last_adventure > (unixepoch() - 3600)
@@ -18,6 +19,7 @@ router.get("/stats", (_req, res) => {
 
   res.json({
     totalMembers: Number(totalMembers),
+    totalBots: Number(totalBots),
     activeMissions: Number(activeMissions),
     totalCards: Number(totalCards),
     totalGuilds: Number(totalGuilds),
