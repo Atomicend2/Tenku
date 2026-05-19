@@ -12,8 +12,9 @@ export default function Leaderboard() {
   return (
     <div className="min-h-screen p-4 md:p-8 max-w-5xl mx-auto space-y-8">
       <div className="text-center mb-12">
-        <h1 className="font-serif text-4xl md:text-5xl font-bold text-white neon-text-purple tracking-widest uppercase mb-4">Hall of Shadows</h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">The most powerful operatives within the organization. Rank is determined by experience points gained through missions and activity.</p>
+        <p className="text-primary/40 font-mono tracking-[0.4em] text-xs uppercase mb-2">天空</p>
+        <h1 className="font-serif text-4xl md:text-5xl font-bold text-white neon-text-sky tracking-widest uppercase mb-4">Celestial Rankings</h1>
+        <p className="text-muted-foreground max-w-2xl mx-auto">The most powerful ascendants within Tenku. Rank is determined by experience points gained through missions and activity.</p>
       </div>
 
       <div className="glass-card rounded-xl border border-white/10 overflow-hidden bg-black/40">

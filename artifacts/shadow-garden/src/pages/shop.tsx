@@ -54,8 +54,9 @@ export default function Shop() {
     <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>
-          <h1 className="font-serif text-3xl md:text-4xl font-bold text-white neon-text-purple tracking-widest uppercase">The Black Market</h1>
-          <p className="text-muted-foreground mt-2">Trade your gold for power. All transactions are final.</p>
+          <p className="text-primary/40 font-mono tracking-[0.4em] text-xs uppercase mb-1">天空</p>
+          <h1 className="font-serif text-3xl md:text-4xl font-bold text-white neon-text-sky tracking-widest uppercase">Tenku Exchange</h1>
+          <p className="text-muted-foreground mt-2">Trade your gold for celestial power. All transactions are final.</p>
         </div>
         
         {isAuthenticated && userStats && (
@@ -226,7 +227,7 @@ function LotterySection({ lotteryData, lotteryLoading, userStats }: any) {
     <div className="space-y-4">
       <div className="flex items-center gap-4 mb-2">
         <h2 className="font-serif text-2xl font-bold text-white tracking-widest uppercase flex items-center gap-2">
-          <Ticket className="w-6 h-6 text-amber-400" /> Shadow Lottery
+          <Ticket className="w-6 h-6 text-amber-400" /> Tenku Lottery
         </h2>
         {userStats && (
           <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/25 rounded-full px-3 py-1 shrink-0">
@@ -291,7 +292,7 @@ function LotterySection({ lotteryData, lotteryLoading, userStats }: any) {
                 </div>
               ) : (
                 <div className="py-4 text-center text-muted-foreground text-sm border border-dashed border-white/10 rounded-lg">
-                  No entries yet. Be the first shadow to enter.
+                  No entries yet. Be the first ascendant to enter.
                 </div>
               )}
 
@@ -303,7 +304,7 @@ function LotterySection({ lotteryData, lotteryLoading, userStats }: any) {
                   <span className="text-amber-400 font-mono font-bold">.ll</span> — Check how many operatives have entered.
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Once <span className="text-amber-400 font-bold">15 operatives</span> enter, <span className="text-amber-400 font-bold">3 winners</span> are drawn automatically from the shadows.
+                  Once <span className="text-amber-400 font-bold">15 operatives</span> enter, <span className="text-amber-400 font-bold">3 winners</span> are drawn automatically from the celestial pool.
                 </p>
               </div>
             </div>
@@ -330,7 +331,7 @@ function LotterySection({ lotteryData, lotteryLoading, userStats }: any) {
                     <Trophy className="w-4 h-4 text-amber-400" />
                     <span className="text-[10px] uppercase tracking-widest text-amber-400 font-bold">Latest Winner</span>
                   </div>
-                  <p className="font-serif font-bold text-white truncate">{recentWinners[tickerIndex]?.name || "Shadow"}</p>
+                  <p className="font-serif font-bold text-white truncate">{recentWinners[tickerIndex]?.name || "Ascendant"}</p>
                   <p className="text-xs text-amber-400 font-mono">+{recentWinners[tickerIndex]?.prize?.toLocaleString() || 0} Gold</p>
                 </div>
 

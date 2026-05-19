@@ -25,17 +25,21 @@ export default function Profile() {
   return (
     <div className="min-h-screen p-4 md:p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
       {/* Header Profile Card */}
-      <div className="glass-card rounded-xl p-6 md:p-8 relative overflow-hidden border border-primary/20">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+      <div className="glass-card rounded-xl p-6 md:p-8 relative overflow-hidden border border-primary/20 shadow-[0_0_60px_rgba(14,165,233,0.08)]">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/8 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-sky-500/5 rounded-full blur-3xl translate-y-1/4 -translate-x-1/4" />
+        <p className="absolute top-4 right-4 text-primary/10 font-mono text-4xl font-bold select-none">天空</p>
         
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6">
-          <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-black border-2 border-primary shadow-[0_0_15px_rgba(168,85,247,0.5)] flex items-center justify-center text-4xl md:text-5xl font-serif text-primary shrink-0">
-            {stats?.profile.name?.charAt(0).toUpperCase() || user?.name.charAt(0).toUpperCase() || "?"}
+          <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-black border-2 border-primary shadow-[0_0_20px_rgba(14,165,233,0.4)] flex items-center justify-center text-4xl md:text-5xl font-serif text-primary shrink-0">
+            {stats?.profile.name?.charAt(0).toUpperCase() ?? "?"}
           </div>
           
           <div className="flex-1 text-center md:text-left w-full">
             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-2">
-              <h1 className="text-3xl md:text-4xl font-serif font-bold text-white tracking-wider">{stats?.profile.name || user?.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-serif font-bold text-white tracking-wider">
+                {statsLoading ? <span className="inline-block w-40 h-8 bg-white/10 animate-pulse rounded" /> : (stats?.profile.name ?? "—")}
+              </h1>
               {stats?.profile.premium === 1 && (
                 <span className="px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-wider rounded-full border border-amber-500/50 inline-block self-center md:self-auto">
                   Premium
@@ -44,7 +48,7 @@ export default function Profile() {
             </div>
             
             <p className="text-muted-foreground text-sm max-w-2xl mb-6">
-              {stats?.profile.bio || "An operative of the shadows. No bio provided."}
+              {stats?.profile.bio || "No bio yet. Use .bio in the bot to set yours."}
             </p>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 w-full">
@@ -88,7 +92,7 @@ export default function Profile() {
             <TabsTrigger 
               key={tab.toLowerCase()} 
               value={tab.toLowerCase()}
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-2 py-3 uppercase tracking-wider text-sm text-muted-foreground data-[state=active]:text-primary data-[state=active]:neon-text-purple transition-all"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-2 py-3 uppercase tracking-wider text-sm text-muted-foreground data-[state=active]:text-primary data-[state=active]:neon-text-sky transition-all"
             >
               {tab}
             </TabsTrigger>
@@ -103,7 +107,7 @@ export default function Profile() {
               {/* RPG Stats */}
               <Card className="glass-card border-white/10 bg-black/20">
                 <CardContent className="p-6">
-                  <h3 className="font-serif text-xl font-bold text-white mb-6 border-b border-white/10 pb-4 flex items-center justify-between">
+                  <h3 className="font-serif text-xl font-bold text-white mb-6 border-b border-primary/15 pb-4 flex items-center justify-between">
                     <span>Combat Statistics</span>
                     <span className="text-sm font-sans text-primary border border-primary/30 px-3 py-1 rounded-full uppercase tracking-widest bg-primary/10">
                       {stats?.rpg?.class || "Novice"}
@@ -122,7 +126,7 @@ export default function Profile() {
               {/* Guild Info */}
               <Card className="glass-card border-white/10 bg-black/20">
                 <CardContent className="p-6">
-                  <h3 className="font-serif text-xl font-bold text-white mb-6 border-b border-white/10 pb-4">Guild Affiliation</h3>
+                  <h3 className="font-serif text-xl font-bold text-white mb-6 border-b border-primary/15 pb-4">Guild Affiliation</h3>
                   
                   {stats?.guild ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -146,7 +150,7 @@ export default function Profile() {
 
         <TabsContent value="inventory">
           <div className="glass-card rounded-xl p-6 border border-white/10">
-            <h3 className="font-serif text-xl font-bold text-white mb-6">Your Inventory</h3>
+            <h3 className="font-serif text-xl font-bold text-white mb-6 border-b border-primary/15 pb-4">Your Inventory</h3>
             
             {invLoading ? (
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -180,9 +184,9 @@ export default function Profile() {
             <div className="w-24 h-24 rounded-full bg-black/50 border border-white/10 flex items-center justify-center mb-6">
               <span className="text-4xl opacity-50">🐾</span>
             </div>
-            <h3 className="font-serif text-2xl font-bold text-white mb-2">No Shadows in your party yet</h3>
+            <h3 className="font-serif text-2xl font-bold text-white mb-2">No companions yet</h3>
             <p className="text-muted-foreground max-w-md">
-              The pet system is currently shrouded in darkness. Check back later when this feature is unveiled.
+              The companion system is ascending. Check back as Tenku evolves.
             </p>
           </div>
         </TabsContent>
