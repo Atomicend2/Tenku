@@ -8,7 +8,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 
-const DEFAULT_STICKER_NAME = "𝐒𝐇𝚫𝐃𝐎𝐖 𝐆𝚫𝐑𝐃𝚵𝐍";
+const DEFAULT_STICKER_NAME = "𝐓𝐄𝐍𝐊𝐔 天空";
 const DEFAULT_STICKER_PACK = "Atomic";
 
 export async function handleConverter(ctx: CommandContext): Promise<void> {
@@ -348,7 +348,7 @@ function buildStickerExif(packName: string, stickerName: string): Buffer {
   // JSON payload for WhatsApp sticker metadata
   const json = Buffer.from(
     JSON.stringify({
-      "sticker-pack-id": "atomic-shadow-garden",
+      "sticker-pack-id": "tenku-heavenly-sky",
       "sticker-pack-name": packName,
       "sticker-pack-publisher": stickerName,
       "sticker-name": stickerName,

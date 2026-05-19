@@ -134,7 +134,7 @@ router.post("/wishlist", requireAuth, async (req: AuthRequest, res) => {
     try {
       const requesterName = req.user?.name || "Someone";
       await sock.sendMessage(owner.id, {
-        text: `*Shadow Garden Trade Alert*\n\n${requesterName} wants to trade for your *${card.name}* (${card.tier} - ${card.series || "General"}).\n\nReply with .trade to negotiate.`,
+        text: `*Tenku 天空 — Trade Alert*\n\n${requesterName} wants to trade for your *${card.name}* (${card.tier} - ${card.series || "General"}).\n\nReply with .trade to negotiate.`,
       });
     } catch (err) {
       logger.error({ err }, "Failed to send wishlist notification");

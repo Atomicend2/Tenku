@@ -77,7 +77,7 @@ async function getAIResponse(prompt: string, userId: string): Promise<string> {
   const resp = await axios.post(PROMPT_URL, {
     model: "gpt-3.5-turbo",
     messages: [
-      { role: "system", content: "You are Alpha, a helpful WhatsApp bot assistant for Shadow Garden. Be concise and friendly. Use emojis sparingly." },
+      { role: "system", content: "You are Tenku, a helpful WhatsApp bot assistant for Tenku (天空) — the Heavenly Sky community. Be concise and friendly. Use emojis sparingly." },
       ...messages,
     ],
     max_tokens: 300,

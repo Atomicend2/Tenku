@@ -247,7 +247,7 @@ async function dispatch(ctx: CommandContext): Promise<void> {
       return handleMenu(ctx);
 
     case "ping":
-      await sendText(from, `Alpha's here!\n> ${getPingMs(msg)}ms`);
+      await sendText(from, `🌌 Tenku's here! 天空\n> ${getPingMs(msg)}ms`);
       return;
 
     case "uptime": {
@@ -262,11 +262,11 @@ async function dispatch(ctx: CommandContext): Promise<void> {
       return handleInfo(ctx);
 
     case "website":
-      await sendText(from, "🌐 *Shadow Garden Website*\n\nhttps://shadow-garden.onrender.com\n\n_View your profile, cards, shop, leaderboard and more._");
+      await sendText(from, "🌐 *Tenku 天空 — Official Website*\n\nhttps://tenku.onrender.com\n\n_View your profile, cards, shop, leaderboard and more._");
       return;
 
     case "community":
-      await sendText(from, "👥 *Join Shadow Garden!*\n\nhttps://chat.whatsapp.com/LDnXqYWuvZMELxVaOpAAHI\n\n_The elite secret society awaits._");
+      await sendText(from, "🌌 *Join Tenku 天空!*\n\nhttps://chat.whatsapp.com/LDnXqYWuvZMELxVaOpAAHI\n\n_The Heavenly Sky awaits. Ascend._");
       return;
 
     case "afk":

@@ -3,7 +3,7 @@ import { MapPin, Skull, Castle, Shield } from "lucide-react";
 export default function World() {
   const REGIONS = [
     { id: 1, name: "Oriana Capital", desc: "The heart of the kingdom, currently under surveillance.", x: "50%", y: "40%", icon: Castle, color: "text-amber-400" },
-    { id: 2, name: "Shadow Garden HQ", desc: "Our hidden base of operations. Unfindable by ordinary means.", x: "20%", y: "70%", icon: Shield, color: "text-primary" },
+    { id: 2, name: "Tenku Sanctuary", desc: "Our celestial base of operations. Concealed beyond the firmament.", x: "20%", y: "70%", icon: Shield, color: "text-primary" },
     { id: 3, name: "Sanctuary of Diablos", desc: "Ancient ruins where the Cult conducts their dark experiments.", x: "80%", y: "20%", icon: Skull, color: "text-red-500" },
     { id: 4, name: "Midgar Academy", desc: "A prestigious school for dark knights.", x: "35%", y: "30%", icon: MapPin, color: "text-blue-400" },
     { id: 5, name: "Lawless City", desc: "A wretched hive of scum and villainy. Perfect for gathering intel.", x: "70%", y: "80%", icon: MapPin, color: "text-orange-500" },

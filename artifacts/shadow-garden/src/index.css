@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700;800&family=Zen+Kaku+Gothic+New:wght@300;400;500;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -76,55 +76,55 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  /* Shadow Garden Theme */
-  --background: 240 10% 4%;
-  --foreground: 0 0% 98%;
+  /* Tenku 天空 — Heavenly Sky Theme */
+  --background: 220 35% 4%;
+  --foreground: 200 20% 96%;
 
-  --border: 240 5% 15%;
+  --border: 210 20% 14%;
   
-  --card: 280 40% 10%;
-  --card-foreground: 0 0% 98%;
-  --card-border: 280 50% 20%;
+  --card: 215 35% 7%;
+  --card-foreground: 200 20% 96%;
+  --card-border: 200 60% 18%;
 
-  --sidebar: 240 10% 4%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-border: 280 50% 15%;
-  --sidebar-primary: 280 80% 50%;
+  --sidebar: 220 35% 4%;
+  --sidebar-foreground: 200 20% 96%;
+  --sidebar-border: 200 60% 14%;
+  --sidebar-primary: 200 90% 50%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 280 40% 15%;
-  --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-ring: 280 80% 50%;
+  --sidebar-accent: 200 40% 12%;
+  --sidebar-accent-foreground: 200 20% 96%;
+  --sidebar-ring: 200 90% 50%;
 
-  --popover: 280 40% 8%;
-  --popover-foreground: 0 0% 98%;
-  --popover-border: 280 50% 20%;
+  --popover: 215 35% 6%;
+  --popover-foreground: 200 20% 96%;
+  --popover-border: 200 60% 18%;
 
-  --primary: 280 80% 40%;
+  --primary: 200 90% 48%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 190 90% 45%;
-  --secondary-foreground: 0 0% 100%;
+  --secondary: 45 90% 52%;
+  --secondary-foreground: 0 0% 10%;
 
-  --muted: 240 5% 15%;
-  --muted-foreground: 240 5% 65%;
+  --muted: 215 20% 14%;
+  --muted-foreground: 210 15% 60%;
 
-  --accent: 45 93% 47%;
+  --accent: 45 90% 52%;
   --accent-foreground: 0 0% 10%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 240 5% 15%;
-  --ring: 280 80% 50%;
+  --input: 215 20% 14%;
+  --ring: 200 90% 50%;
   
-  --chart-1: 280 80% 50%;
-  --chart-2: 190 90% 45%;
-  --chart-3: 45 93% 47%;
+  --chart-1: 200 90% 50%;
+  --chart-2: 45 90% 52%;
+  --chart-3: 175 70% 45%;
   --chart-4: 0 84% 60%;
-  --chart-5: 240 5% 65%;
+  --chart-5: 210 15% 60%;
 
-  --app-font-sans: 'Rajdhani', sans-serif;
-  --app-font-serif: 'Cinzel', serif;
+  --app-font-sans: 'Zen Kaku Gothic New', sans-serif;
+  --app-font-serif: 'Shippori Mincho', serif;
   --app-font-mono: 'Space Mono', monospace;
   
   --radius: 0.5rem;
@@ -138,7 +138,7 @@
 }
 
 .dark {
-  /* Same as root because we only want dark mode */
+  /* Same as root — dark mode only */
 }
 
 @layer base {
@@ -148,12 +148,13 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    background-color: #050505;
+    background-color: #030810;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(74, 4, 78, 0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(46, 2, 49, 0.15) 0px, transparent 50%);
+      radial-gradient(at 20% 10%, rgba(14, 100, 165, 0.12) 0px, transparent 55%),
+      radial-gradient(at 80% 90%, rgba(8, 60, 120, 0.12) 0px, transparent 55%),
+      radial-gradient(at 50% 50%, rgba(14, 165, 233, 0.04) 0px, transparent 70%);
     background-attachment: fixed;
-    color: #e5e5e5;
+    color: #e2edf5;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -163,22 +164,23 @@
 
 @layer utilities {
   .glass-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(14, 165, 233, 0.03);
+    border: 1px solid rgba(14, 165, 233, 0.10);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
   }
   
   .glass-panel {
-    background: rgba(10, 10, 10, 0.7);
-    border: 1px solid rgba(139, 92, 246, 0.15);
+    background: rgba(5, 15, 30, 0.75);
+    border: 1px solid rgba(14, 165, 233, 0.15);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
   }
   
+  /* Alias kept for compat — now emits sky-blue glow */
   .neon-text-purple {
-    text-shadow: 0 0 10px rgba(168, 85, 247, 0.8), 0 0 20px rgba(168, 85, 247, 0.4);
+    text-shadow: 0 0 12px rgba(14, 165, 233, 0.9), 0 0 24px rgba(14, 165, 233, 0.5);
   }
   
   .neon-text-cyan {
@@ -186,12 +188,22 @@
   }
   
   .neon-text-gold {
-    text-shadow: 0 0 10px rgba(234, 179, 8, 0.8), 0 0 20px rgba(234, 179, 8, 0.4);
+    text-shadow: 0 0 10px rgba(245, 158, 11, 0.9), 0 0 22px rgba(245, 158, 11, 0.5);
+  }
+
+  .neon-text-sky {
+    text-shadow: 0 0 12px rgba(14, 165, 233, 0.9), 0 0 28px rgba(14, 165, 233, 0.5), 0 0 48px rgba(14, 165, 233, 0.2);
   }
   
+  /* Alias kept for compat — now sky-blue */
   .neon-border-purple {
-    box-shadow: 0 0 10px rgba(168, 85, 247, 0.5), inset 0 0 10px rgba(168, 85, 247, 0.2);
-    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 12px rgba(14, 165, 233, 0.5), inset 0 0 10px rgba(14, 165, 233, 0.15);
+    border-color: rgba(14, 165, 233, 0.55);
+  }
+
+  .neon-border-sky {
+    box-shadow: 0 0 12px rgba(14, 165, 233, 0.5), inset 0 0 10px rgba(14, 165, 233, 0.15);
+    border-color: rgba(14, 165, 233, 0.55);
   }
   
   .neon-border-cyan {

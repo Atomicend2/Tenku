@@ -23,7 +23,7 @@ export default function Login() {
         setStep("code");
         toast({
           title: "Code Sent",
-          description: "Check your WhatsApp for the verification code from the Shadow Garden bot.",
+          description: "Check your WhatsApp for the access code from the Tenku bot.",
         });
       },
       onError: (error) => {
@@ -42,8 +42,8 @@ export default function Login() {
         if (data.success && data.token) {
           login(data.token, data.user);
           toast({
-            title: "Welcome",
-            description: "You have successfully entered the Shadow Garden.",
+            title: "Welcome to Tenku",
+            description: "You have ascended. The heavens await.",
           });
           setLocation("/profile");
         } else {
@@ -80,15 +80,17 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-background">
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
-        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(14,165,233,0.08),transparent)]" />
+        <div className="absolute inset-0 bg-black/50" />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="font-serif text-4xl font-bold bg-gradient-to-br from-purple-400 to-primary bg-clip-text text-transparent neon-text-purple tracking-widest uppercase mb-2">
-            Shadow Garden
+          <p className="text-primary/40 font-mono tracking-[0.5em] text-sm uppercase mb-2">天空</p>
+          <h1 className="font-serif text-4xl font-bold bg-gradient-to-br from-sky-300 via-primary to-cyan-300 bg-clip-text text-transparent neon-text-sky tracking-widest uppercase mb-2">
+            TENKU
           </h1>
-          <p className="text-muted-foreground tracking-widest uppercase text-sm">Authentication Protocol</p>
+          <p className="text-muted-foreground tracking-[0.3em] uppercase text-xs">Authentication Protocol</p>
         </div>
 
         <Card className="glass-card border-primary/20 bg-black/40">
@@ -99,14 +101,14 @@ export default function Login() {
             <CardDescription className="text-center">
               {step === "phone" 
                 ? "Enter your registered WhatsApp number to receive an access code." 
-                : "Enter the 6-digit access code sent to your device."}
+                : "Enter the 6-digit access code sent to your WhatsApp."}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {step === "phone" ? (
               <form onSubmit={handleSendOtp} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-primary tracking-wider uppercase text-xs">WhatsApp Number</Label>
+                  <Label htmlFor="phone" className="text-primary tracking-[0.2em] uppercase text-xs">WhatsApp Number</Label>
                   <Input 
                     id="phone" 
                     placeholder="e.g. +2347012345678" 
@@ -119,7 +121,7 @@ export default function Login() {
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full bg-primary hover:bg-primary/80 text-white font-bold tracking-widest uppercase h-12 neon-border-purple"
+                  className="w-full bg-primary hover:bg-primary/80 text-white font-bold tracking-[0.2em] uppercase h-12 neon-border-sky"
                   disabled={!phone || sendOtpMutation.isPending}
                 >
                   {sendOtpMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Request Access"}
@@ -128,7 +130,7 @@ export default function Login() {
             ) : (
               <form onSubmit={handleVerifyOtp} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="code" className="text-primary tracking-wider uppercase text-xs">Access Code</Label>
+                  <Label htmlFor="code" className="text-primary tracking-[0.2em] uppercase text-xs">Access Code</Label>
                   <Input 
                     id="code" 
                     placeholder="6-digit code" 
@@ -151,10 +153,10 @@ export default function Login() {
                   </Button>
                   <Button 
                     type="submit" 
-                    className="flex-[2] bg-primary hover:bg-primary/80 text-white font-bold tracking-widest uppercase h-12 neon-border-purple"
+                    className="flex-[2] bg-primary hover:bg-primary/80 text-white font-bold tracking-[0.2em] uppercase h-12 neon-border-sky"
                     disabled={!code || verifyOtpMutation.isPending}
                   >
-                    {verifyOtpMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify & Enter"}
+                    {verifyOtpMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Ascend"}
                   </Button>
                 </div>
               </form>
@@ -162,7 +164,7 @@ export default function Login() {
           </CardContent>
           <CardFooter className="justify-center border-t border-primary/10 pt-6">
             <p className="text-xs text-muted-foreground">
-              Not a member? <a href="https://chat.whatsapp.com/LDnXqYWuvZMELxVaOpAAHI" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Join the Shadow Garden</a>
+              Not a member? <a href="https://chat.whatsapp.com/LDnXqYWuvZMELxVaOpAAHI" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Join Tenku 天空</a>
             </p>
           </CardFooter>
         </Card>

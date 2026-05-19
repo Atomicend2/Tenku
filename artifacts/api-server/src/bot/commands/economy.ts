@@ -823,7 +823,7 @@ async function buildProfileImage(ctx: CommandContext, targetId: string, user: an
       <rect x="211" y="520" width="${progressFill}" height="27" rx="13" fill="#7252ff"/>
       <text x="382" y="540" text-anchor="middle" font-size="17" font-weight="700" class="shadow">${xp}/${xpNeeded} XP</text>
       ${bio ? `<text x="382" y="590" text-anchor="middle" font-size="21" class="shadow">${escapeXml(bio)}</text>` : ""}
-      <text x="382" y="826" text-anchor="middle" font-size="28" font-weight="800" font-style="italic" fill="rgba(255,255,255,.88)" class="shadow">SHADOW GARDEN</text>
+      <text x="382" y="826" text-anchor="middle" font-size="28" font-weight="800" font-style="italic" fill="rgba(255,255,255,.88)" class="shadow">TENKU 天空</text>
     </svg>
   `);
   const background = user.profile_background && Buffer.isBuffer(user.profile_background)

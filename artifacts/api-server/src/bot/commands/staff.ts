@@ -542,7 +542,7 @@ export async function handleStaff(ctx: CommandContext): Promise<void> {
     }
 
     const rulesText =
-      `*📜SHADOW GARDEN LAWS AND REGULATIONS 📜*\n\n` +
+      `*📜 TENKU 天空 — LAWS AND REGULATIONS 📜*\n\n` +
       `*BASIC RULES*\n\n` +
       `1. Respect all Moderators and Guardians\n\n` +
       `2. Please Have a Decent Behavior and don't go around being annoying or doing something that will make you get banned\n\n` +

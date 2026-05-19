@@ -10,8 +10,6 @@ import {
   Shield, 
   Trophy,
   LogOut,
-  Menu,
-  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,19 +26,21 @@ const NAV_ITEMS = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-[100dvh] flex flex-col md:flex-row bg-background text-foreground relative">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 border-r border-border bg-black/50 backdrop-blur-xl sticky top-0 h-screen overflow-y-auto">
         <div className="p-6 flex items-center justify-center border-b border-border/50">
-          <h1 className="font-serif text-2xl font-bold bg-gradient-to-br from-purple-400 to-primary bg-clip-text text-transparent neon-text-purple tracking-widest text-center uppercase">
-            Shadow<br/>Garden
-          </h1>
+          <div className="text-center">
+            <p className="text-[10px] tracking-[0.4em] text-primary/60 uppercase mb-1 font-mono">天空</p>
+            <h1 className="font-serif text-2xl font-bold bg-gradient-to-br from-sky-300 via-primary to-cyan-400 bg-clip-text text-transparent neon-text-sky tracking-widest uppercase">
+              TENKU
+            </h1>
+          </div>
         </div>
 
-        <nav className="flex-1 py-6 px-3 space-y-2">
+        <nav className="flex-1 py-6 px-3 space-y-1">
           {NAV_ITEMS.map((item) => {
             const isActive = location === item.href;
             return (
@@ -49,12 +49,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-300 font-medium tracking-wide group",
                     isActive
-                      ? "bg-primary/20 text-primary border border-primary/50 neon-border-purple"
+                      ? "bg-primary/15 text-primary border border-primary/40 neon-border-sky"
                       : "text-muted-foreground hover:bg-white/5 hover:text-white"
                   )}
                 >
                   <item.icon className={cn("w-5 h-5", isActive && "text-primary")} />
-                  <span>{item.label}</span>
+                  <span className="font-sans">{item.label}</span>
                 </div>
               </Link>
             );
@@ -64,7 +64,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {isAuthenticated && user && (
           <div className="p-4 border-t border-border/50 mt-auto">
             <div className="flex items-center gap-3 mb-4 px-2">
-              <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center font-serif text-lg font-bold text-primary">
+              <div className="w-10 h-10 rounded-full bg-primary/15 border border-primary/40 flex items-center justify-center font-serif text-lg font-bold text-primary">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
@@ -84,8 +84,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {!isAuthenticated && (
           <div className="p-4 border-t border-border/50 mt-auto">
             <Link href="/login" className="block w-full">
-              <div className="w-full py-2 bg-primary/20 hover:bg-primary/30 border border-primary/50 text-primary text-center rounded-md transition-all font-bold tracking-widest text-sm uppercase">
-                Initiate
+              <div className="w-full py-2 bg-primary/15 hover:bg-primary/25 border border-primary/40 text-primary text-center rounded-md transition-all font-bold tracking-widest text-sm uppercase neon-border-sky">
+                Ascend
               </div>
             </Link>
           </div>
@@ -94,16 +94,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Top Bar */}
       <header className="md:hidden h-16 border-b border-border/50 bg-black/80 backdrop-blur-xl flex items-center justify-between px-4 sticky top-0 z-50">
-        <h1 className="font-serif text-xl font-bold bg-gradient-to-br from-purple-400 to-primary bg-clip-text text-transparent uppercase tracking-widest">
-          Shadow Garden
-        </h1>
+        <div className="flex items-center gap-2">
+          <span className="text-primary/50 font-mono text-sm">天空</span>
+          <h1 className="font-serif text-xl font-bold bg-gradient-to-br from-sky-300 to-primary bg-clip-text text-transparent uppercase tracking-widest neon-text-sky">
+            TENKU
+          </h1>
+        </div>
         {isAuthenticated ? (
-           <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center font-serif font-bold text-primary text-sm">
+           <div className="w-8 h-8 rounded-full bg-primary/15 border border-primary/40 flex items-center justify-center font-serif font-bold text-primary text-sm">
              {user?.name.charAt(0).toUpperCase()}
            </div>
         ) : (
           <Link href="/login">
-            <span className="text-xs font-bold text-primary uppercase tracking-widest">Login</span>
+            <span className="text-xs font-bold text-primary uppercase tracking-widest">Ascend</span>
           </Link>
         )}
       </header>
@@ -123,7 +126,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <item.icon 
                   className={cn(
                     "w-5 h-5 transition-colors", 
-                    isActive ? "text-primary filter drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" : "text-muted-foreground"
+                    isActive ? "text-primary filter drop-shadow-[0_0_8px_rgba(14,165,233,0.8)]" : "text-muted-foreground"
                   )} 
                 />
                 <span 

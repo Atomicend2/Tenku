@@ -68,7 +68,7 @@ router.post("/otp/send", async (req, res) => {
   if (!user) {
     res.status(404).json({
       success: false,
-      message: "This phone number is not registered with Shadow Garden. Join the WhatsApp group and use .register first.",
+      message: "This phone number is not registered with Tenku. Join the WhatsApp group and use .register first.",
     });
     return;
   }
@@ -84,7 +84,7 @@ router.post("/otp/send", async (req, res) => {
     try {
       const jid = `${normalized}@s.whatsapp.net`;
       await sock.sendMessage(jid, {
-        text: `*Shadow Garden* — Your login code:\n\n*${code}*\n\nThis code expires in 5 minutes. Do not share it with anyone.`,
+        text: `*Tenku 天空* — Your login code:\n\n*${code}*\n\nThis code expires in 5 minutes. Do not share it with anyone.`,
       });
       logger.info({ phone: normalized }, "OTP sent via WhatsApp");
     } catch (err) {

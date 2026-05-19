@@ -126,7 +126,7 @@ export default function Shop() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground">Each ticket grants one entry into the Shadow Garden global lottery. Type <span className="font-mono text-amber-400">.lottery</span> in WhatsApp to enter, or <span className="font-mono text-amber-400">.ll</span> to check the pool. <span className="text-amber-400 font-semibold">Max 5 tickets per day.</span> 3 winners are drawn automatically when 15 operatives enter.</p>
+                        <p className="text-xs text-muted-foreground">Each ticket grants one entry into the Tenku 天空 global lottery. Type <span className="font-mono text-amber-400">.lottery</span> in WhatsApp to enter, or <span className="font-mono text-amber-400">.ll</span> to check the pool. <span className="text-amber-400 font-semibold">Max 5 tickets per day.</span> 3 winners are drawn automatically when 15 operatives enter.</p>
                       </div>
                     </div>
                   </div>

@@ -38,7 +38,7 @@ if (!fs.existsSync(PAIRING_PHONE_PATH) && fs.existsSync(OLD_PAIRING_PHONE_PATH))
   } catch { /* ignore */ }
 }
 
-export const BOT_OWNER_LID = "236713549029502";
+export const BOT_OWNER_LID = "2348144550593";
 export const PREFIX = ".";
 
 let sock: WASocket | null = null;

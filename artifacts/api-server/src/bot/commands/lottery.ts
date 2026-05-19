@@ -57,7 +57,7 @@ export async function handleLottery(ctx: CommandContext): Promise<void> {
       const image = await buildLotteryImage(lottery.id);
       await ctx.sock.sendMessage(from, {
         image,
-        caption: "🎲 *Lottery Pool Status — SHADOW GARDEN*",
+        caption: "🎲 *Lottery Pool Status — TENKU 天空*",
       });
       return;
     }
@@ -77,7 +77,7 @@ export async function handleLottery(ctx: CommandContext): Promise<void> {
     const image = await buildLotteryImage(lottery.id);
     await ctx.sock.sendMessage(from, {
       image,
-      caption: "🎲 *Lottery Pool Status — SHADOW GARDEN*",
+      caption: "🎲 *Lottery Pool Status — TENKU 天空*",
     });
 
     // Auto-draw when 15 people have entered
@@ -103,7 +103,7 @@ export async function handleLottery(ctx: CommandContext): Promise<void> {
     let statusLine = `🎫 Your tickets: *${tickets}*`;
     if (isInLottery) statusLine += "\n✅ You are *already in* this drawing";
 
-    await sendText(from, `🎰 *Lottery Status — Shadow Garden*\n\n${statusLine}\n👥 Participants: *${entryCount}/${MAX_PARTICIPANTS}*`);
+    await sendText(from, `🎰 *Lottery Status — Tenku 天空*\n\n${statusLine}\n👥 Participants: *${entryCount}/${MAX_PARTICIPANTS}*`);
 
     if (!lottery || entryCount === 0) {
       await sendText(from, "No active lottery pool yet. Type *.lottery* to enter when you have a ticket!");
@@ -113,7 +113,7 @@ export async function handleLottery(ctx: CommandContext): Promise<void> {
     const image = await buildLotteryImage(lottery.id);
     await ctx.sock.sendMessage(from, {
       image,
-      caption: "🎲 *Lottery Pool Status — SHADOW GARDEN*",
+      caption: "🎲 *Lottery Pool Status — TENKU 天空*",
     });
     return;
   }
@@ -126,7 +126,7 @@ export async function handleLottery(ctx: CommandContext): Promise<void> {
       return;
     }
     const entries = (db.prepare("SELECT COUNT(*) as count FROM lottery_entries WHERE lottery_id = ?").get(lottery.id) as any)?.count || 0;
-    await sendText(from, `🎰 *Shadow Garden Lottery*\n\n👥 Participants: ${entries}/${MAX_PARTICIPANTS}\n🏆 Winners drawn automatically when ${MAX_PARTICIPANTS} enter`);
+    await sendText(from, `🎰 *Tenku 天空 Lottery*\n\n👥 Participants: ${entries}/${MAX_PARTICIPANTS}\n🏆 Winners drawn automatically when ${MAX_PARTICIPANTS} enter`);
 
     const image = await buildLotteryImage(lottery.id);
     await ctx.sock.sendMessage(from, { image, caption: "🎲 Lottery Pool Status" });
@@ -179,8 +179,8 @@ async function performLotteryDraw(ctx: CommandContext, lotteryId: number, from: 
   db.prepare("UPDATE lotteries SET active = 0, winner_id = ?, ended_at = unixepoch() WHERE id = ?").run(winners[0].user_id, lotteryId);
 
   const announcement =
-    `🎰 *LOTTERY DRAW — SHADOW GARDEN* 🎰\n\n` +
-    `The shadows have chosen!\n\n` +
+    `🎰 *LOTTERY DRAW — TENKU 天空* 🎰\n\n` +
+    `The heavens have chosen!\n\n` +
     `🏆 *Winners:*\n` +
     winnerNames.map((n, i) => `${["🥇","🥈","🥉"][i] || "🏅"} ${n}`).join("\n") +
     `\n\n💰 *Prize:* ${perWinner.toLocaleString()} Gold each\n\n` +
@@ -247,7 +247,7 @@ async function buildLotteryImage(lotteryId: number): Promise<Buffer> {
     <circle cx="80" cy="380" r="80" fill="rgba(245,158,11,0.05)"/>
 
     <!-- Header -->
-    <text x="50%" y="52" text-anchor="middle" fill="white" font-size="13" font-family="Arial, sans-serif" font-weight="bold" letter-spacing="4" fill-opacity="0.5">SHADOW GARDEN</text>
+    <text x="50%" y="52" text-anchor="middle" fill="white" font-size="13" font-family="Arial, sans-serif" font-weight="bold" letter-spacing="4" fill-opacity="0.5">TENKU 天空</text>
     <text x="50%" y="90" text-anchor="middle" fill="white" font-size="26" font-family="Georgia, serif" font-weight="bold" letter-spacing="2">Lottery Pools</text>
 
     <!-- Divider -->

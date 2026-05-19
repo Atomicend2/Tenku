@@ -358,18 +358,23 @@ function initSchema(db: Database.Database): void {
   // Bank Note system — tiered passive items that expand bank storage capacity
   db.prepare(`
     INSERT OR IGNORE INTO shop_items (name, description, price, effect, category) VALUES
-      ('10K Bank Note', 'A certified Shadow Garden treasury note. Permanently expands your maximum bank storage.', 10000, 'bank_cap:50000', 'passive'),
-      ('50K Bank Note', 'A high-value treasury note bearing the Shadow Garden seal. Major bank expansion.', 50000, 'bank_cap:250000', 'passive'),
-      ('100K Bank Note', 'A sovereign-grade treasury note. Only the wealthiest operatives possess one.', 100000, 'bank_cap:750000', 'passive')
+      ('10K Bank Note', 'A certified Tenku treasury note bearing the seal of 天空. Permanently expands your maximum bank storage.', 10000, 'bank_cap:50000', 'passive'),
+      ('50K Bank Note', 'A high-value Tenku treasury note. Issued by the heavens for elite operatives. Major bank expansion.', 50000, 'bank_cap:250000', 'passive'),
+      ('100K Bank Note', 'A sovereign-grade celestial note. Only the wealthiest ascendants of Tenku possess one.', 100000, 'bank_cap:750000', 'passive')
   `).run();
 
   // Lottery Ticket — used with .lottery command (max 5 per day)
   db.prepare(`
     INSERT OR IGNORE INTO shop_items (name, description, price, effect, category) VALUES
-      ('Lottery Ticket', 'A golden ticket to enter the Shadow Garden global lottery pool. Type .lottery to enter. Max 5 purchases per day.', 5000, 'lottery_ticket', 'lottery')
+      ('Lottery Ticket', 'A celestial ticket to enter the Tenku 天空 global lottery pool. Type .lottery to enter. Max 5 purchases per day.', 5000, 'lottery_ticket', 'lottery')
   `).run();
   db.prepare("DELETE FROM shop_items WHERE LOWER(name) IN ('card pack', 'premium card pack', 'vip pass', 'vip access')").run();
   db.prepare("DELETE FROM inventory WHERE LOWER(item) IN ('card pack', 'premium card pack', 'vip pass', 'vip access')").run();
+  // Refresh Tenku-rebranded descriptions on existing rows (INSERT OR IGNORE won't update already-seeded items)
+  db.prepare("UPDATE shop_items SET description = 'A certified Tenku treasury note bearing the seal of 天空. Permanently expands your maximum bank storage.' WHERE name = '10K Bank Note'").run();
+  db.prepare("UPDATE shop_items SET description = 'A high-value Tenku treasury note. Issued by the heavens for elite operatives. Major bank expansion.' WHERE name = '50K Bank Note'").run();
+  db.prepare("UPDATE shop_items SET description = 'A sovereign-grade celestial note. Only the wealthiest ascendants of Tenku possess one.' WHERE name = '100K Bank Note'").run();
+  db.prepare("UPDATE shop_items SET description = 'A celestial ticket to enter the Tenku 天空 global lottery pool. Type .lottery to enter. Max 5 purchases per day.' WHERE name = 'Lottery Ticket'").run();
 
   ensureColumn(db, "users", "last_work", "INTEGER DEFAULT 0");
   ensureColumn(db, "users", "last_dig", "INTEGER DEFAULT 0");

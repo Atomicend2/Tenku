@@ -9,12 +9,12 @@ export async function handleMenu(ctx: CommandContext): Promise<void> {
   const { from, sender, sock } = ctx;
   const senderName = sender.split("@")[0];
 
-  const menuText = `┌─⟡ 『 𝗦𝗛𝗔𝗗𝗢𝗪 𝗚𝗔𝗥𝗗𝗘𝗡 』⟡
+  const menuText = `┌─⟡ 『 𝗧𝗘𝗡𝗞𝗨 天空 』⟡
 ║
 ║ ┌────────────────────
 ║ ║ 👋 𝗛𝗲𝘆 : @${senderName}
-║ ║ 👾 𝗕𝗼𝘁 : Alpha
-║ ║ 👑 𝗖𝗿𝗲𝗮𝘁𝗼𝗿 : Ryuk
+║ ║ 🌌 𝗕𝗼𝘁 : Tenku
+║ ║ 👑 𝗖𝗿𝗲𝗮𝘁𝗼𝗿 : Natsuki
 ║ ║ 🔹 𝗣𝗿𝗲𝗳𝗶𝘅 : [ . ]
 ║ └────────────────────
 ║
@@ -280,7 +280,7 @@ export async function handleMenu(ctx: CommandContext): Promise<void> {
 ║ ║ ➩ .rc <amount> <number> (remove cash)
 ║ └────────────────────
 ║
-╚─⟡ 🛡️ 𝑃𝑜𝑤𝑒𝑟 𝑏𝑒𝑙𝑜𝑛𝑔𝑠 𝑡𝑜 𝑡ℎ𝑜𝑠𝑒 𝑤ℎ𝑜 𝑟𝑢𝑙𝑒 𝑡ℎ𝑒 𝑠ℎ𝑎𝑑𝑜𝑤𝑠.`;
+╚─⟡ 🌌 𝑇ℎ𝑒 𝑠𝑘𝑦 𝑖𝑠 𝑛𝑜𝑡 𝑡ℎ𝑒 𝑙𝑖𝑚𝑖𝑡 — 𝑖𝑡 𝑖𝑠 𝑡ℎ𝑒 𝑏𝑒𝑔𝑖𝑛𝑛𝑖𝑛𝑔. 天空`;
 
   const imagePath = path.join(__dirname, "menu-image.jpg");
 
@@ -313,14 +313,14 @@ export async function handleInfo(ctx: CommandContext): Promise<void> {
   const m = Math.floor((uptime % 3600) / 60);
   const s = Math.floor(uptime % 60);
 
-  const info = `🤖 *Alpha Bot — Shadow Garden*\n\n` +
-    `👾 Bot: Alpha\n` +
-    `👑 Creator: Ryuk\n` +
+  const info = `🌌 *Tenku Bot — 天空*\n\n` +
+    `🌌 Bot: Tenku\n` +
+    `👑 Creator: Natsuki\n` +
     `🔹 Prefix: [ . ]\n` +
     `📡 Status: Online ✅\n` +
     `⏱️ Uptime: ${h}h ${m}m ${s}s\n` +
     `📦 Version: 1.0.0\n` +
-    `🛡️ Shadow Garden Bot`;
+    `🌌 Tenku — Heavenly Sky`;
 
   await sock.sendMessage(from, { text: info, mentions: [sender] });
 }
